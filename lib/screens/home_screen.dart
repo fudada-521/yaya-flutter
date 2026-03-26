@@ -477,8 +477,210 @@ class StatisticsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: Text('统计分析页面开发中...'),
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          _buildStatisticsCard(context),
+          const SizedBox(height: 20),
+          _buildTrendOverview(context),
+          const SizedBox(height: 20),
+          _buildDetailedStats(context),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatisticsCard(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              '统计分析',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            Consumer<RecordsProvider>(
+              builder: (context, recordsProvider, child) {
+                final todayStats = recordsProvider.getTodayStats();
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildStatRow('今日喂养', '${todayStats['feedingCount']}次', Colors.orange),
+                    _buildStatRow('今日睡眠', '${todayStats['totalSleepDuration'].inHours}小时', Colors.blue),
+                    _buildStatRow('今日换尿布', '${todayStats['diaperCount']}次', Colors.green),
+                  ],
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatRow(String label, String value, Color color) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: const TextStyle(fontSize: 16)),
+          Row(
+            children: [
+              Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: color,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                value,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: color,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTrendOverview(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            const Text(
+              '趋势概览',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildTrendItem(context, '喂养', Icons.restaurant, Colors.orange, () {
+                  Navigator.pushNamed(context, '/feeding');
+                }),
+                _buildTrendItem(context, '睡眠', Icons.bedtime, Colors.blue, () {
+                  Navigator.pushNamed(context, '/sleep');
+                }),
+                _buildTrendItem(context, '尿布', Icons.baby_changing_station, Colors.green, () {
+                  Navigator.pushNamed(context, '/diaper');
+                }),
+                _buildTrendItem(context, '成长', Icons.trending_up, Colors.purple, () {
+                  Navigator.pushNamed(context, '/growth');
+                }),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTrendItem(
+    BuildContext context,
+    String label,
+    IconData icon,
+    Color color,
+    VoidCallback onTap,
+  ) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, size: 32, color: Colors.white),
+          ),
+          const SizedBox(height: 8),
+          Text(label, style: const TextStyle(fontSize: 14)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailedStats(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              '详细统计',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            Consumer<RecordsProvider>(
+              builder: (context, recordsProvider, child) {
+                final allRecords = recordsProvider.getRecentRecords(limit: 50);
+
+                // 计算喂养统计
+                final feedingRecords = recordsProvider.feedingRecords;
+                final totalFeeding = feedingRecords.length;
+                final totalFeedingAmount = feedingRecords.fold<double>(0, (sum, r) => sum + (r.amount ?? 0));
+
+                // 计算睡眠统计
+                final sleepRecords = recordsProvider.sleepRecords;
+                final totalSleepDuration = sleepRecords.fold<Duration>(Duration.zero, (sum, r) => sum + (r.duration ?? Duration.zero));
+
+                // 计算尿布统计
+                final diaperRecords = recordsProvider.diaperRecords;
+                final totalDiaper = diaperRecords.length;
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildDetailStat('累计喂养次数', '$totalFeeding次', Colors.orange),
+                    if (totalFeedingAmount > 0)
+                      _buildDetailStat('累计奶量', '${totalFeedingAmount.toStringAsFixed(0)}ml', Colors.orange),
+                    _buildDetailStat('累计睡眠次数', '${sleepRecords.length}次', Colors.blue),
+                    _buildDetailStat('累计睡眠时长', '${totalSleepDuration.inHours}小时', Colors.blue),
+                    _buildDetailStat('累计换尿布次数', '$totalDiaper次', Colors.green),
+                    const SizedBox(height: 16),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        '数据基于最近${allRecords.length}条记录',
+                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetailStat(String label, String value, Color color) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: const TextStyle(fontSize: 14)),
+          Text(value, style: TextStyle(color: color, fontWeight: FontWeight.bold)),
+        ],
+      ),
     );
   }
 }
