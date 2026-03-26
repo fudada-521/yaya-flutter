@@ -690,8 +690,272 @@ class SettingsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: Text('设置页面开发中...'),
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSettingsSection(
+            context,
+            title: '通用设置',
+            children: [
+              _buildSettingsItem(
+                context,
+                icon: Icons.notifications,
+                title: '通知提醒',
+                subtitle: '设置喂养、睡眠等提醒',
+                onTap: () => _showNotificationSettings(context),
+              ),
+              _buildSettingsItem(
+                context,
+                icon: Icons.palette,
+                title: '主题设置',
+                subtitle: '深色模式、主题色',
+                onTap: () => _showThemeSettings(context),
+              ),
+              _buildSettingsItem(
+                context,
+                icon: Icons.language,
+                title: '语言设置',
+                subtitle: '简体中文',
+                onTap: () {},
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          _buildSettingsSection(
+            context,
+            title: '数据管理',
+            children: [
+              _buildSettingsItem(
+                context,
+                icon: Icons.backup,
+                title: '数据备份',
+                subtitle: '导出宝宝记录数据',
+                onTap: () => _showBackupSettings(context),
+              ),
+              _buildSettingsItem(
+                context,
+                icon: Icons.restore,
+                title: '数据恢复',
+                subtitle: '从备份文件恢复数据',
+                onTap: () => _showRestoreSettings(context),
+              ),
+              _buildSettingsItem(
+                context,
+                icon: Icons.delete_forever,
+                title: '清除所有数据',
+                subtitle: '删除所有记录和宝宝信息',
+                onTap: () => _showClearDataDialog(context),
+                isDestructive: true,
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          _buildSettingsSection(
+            context,
+            title: '关于',
+            children: [
+              _buildSettingsItem(
+                context,
+                icon: Icons.info,
+                title: '关于丫丫日记',
+                subtitle: '版本 1.0.0',
+                onTap: () => _showAboutDialog(context),
+              ),
+              _buildSettingsItem(
+                context,
+                icon: Icons.privacy_tip,
+                title: '隐私政策',
+                subtitle: '了解我们如何保护您的数据',
+                onTap: () {},
+              ),
+              _buildSettingsItem(
+                context,
+                icon: Icons.description,
+                title: '用户协议',
+                subtitle: '使用条款和条件',
+                onTap: () {},
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSettingsSection(
+    BuildContext context, {
+    required String title,
+    required List<Widget> children,
+  }) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 12),
+            ...children,
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSettingsItem(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+    bool isDestructive = false,
+  }) {
+    return ListTile(
+      leading: CircleAvatar(
+        backgroundColor: isDestructive ? Colors.red.shade100 : Colors.pink.shade100,
+        child: Icon(
+          icon,
+          color: isDestructive ? Colors.red : Colors.pink,
+        ),
+      ),
+      title: Text(
+        title,
+        style: TextStyle(
+          color: isDestructive ? Colors.red : null,
+        ),
+      ),
+      subtitle: Text(subtitle),
+      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+      onTap: onTap,
+    );
+  }
+
+  void _showNotificationSettings(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('通知提醒'),
+        content: const Text('通知功能开发中...'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('确定'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showThemeSettings(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('主题设置'),
+        content: const Text('主题功能开发中...'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('确定'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showBackupSettings(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('数据备份'),
+        content: const Text('备份功能开发中...'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('确定'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showRestoreSettings(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('数据恢复'),
+        content: const Text('恢复功能开发中...'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('确定'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showClearDataDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('清除所有数据'),
+        content: const Text('确定要删除所有数据吗？此操作不可恢复！'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('取消'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('清除数据功能开发中...')),
+              );
+            },
+            child: const Text('删除', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAboutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.child_care, color: Colors.pink),
+            SizedBox(width: 8),
+            Text('丫丫日记'),
+          ],
+        ),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('版本: 1.0.0'),
+            SizedBox(height: 8),
+            Text('丫丫日记是一款专业的婴儿生活记录应用，帮助爸爸妈妈记录宝宝的喂养、睡眠、换尿布和成长轨迹。'),
+            SizedBox(height: 16),
+            Text('© 2024 Yaya Diary', style: TextStyle(color: Colors.grey)),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('确定'),
+          ),
+        ],
+      ),
     );
   }
 }

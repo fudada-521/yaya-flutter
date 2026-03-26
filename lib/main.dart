@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'screens/home_screen.dart';
 import 'screens/feeding_screen.dart';
+import 'screens/sleep_screen.dart';
+import 'screens/diaper_screen.dart';
+import 'screens/growth_screen.dart';
+import 'screens/baby_profile_screen.dart';
 import 'providers/baby_provider.dart';
 import 'providers/records_provider.dart';
 
@@ -34,11 +38,10 @@ class YayaDiaryApp extends StatelessWidget {
         home: const HomeScreen(),
         routes: {
           '/feeding': (context) => const FeedingScreen(),
-          // 预留其他功能页面的路由
-          '/sleep': (context) => const Placeholder(),
-          '/diaper': (context) => const Placeholder(),
-          '/growth': (context) => const Placeholder(),
-          '/baby-profile': (context) => const Placeholder(),
+          '/sleep': (context) => const SleepScreen(),
+          '/diaper': (context) => const DiaperScreen(),
+          '/growth': (context) => const GrowthScreen(),
+          '/baby-profile': (context) => const BabyProfileScreen(),
         },
       ),
     );

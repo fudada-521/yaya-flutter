@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import '../models/baby.dart';
@@ -12,15 +13,38 @@ class DatabaseHelper {
   DatabaseHelper._internal();
 
   static Database? _database;
+  static bool _isInitializing = false;
 
   Future<Database> get database async {
     if (_database != null) return _database!;
-    _database = await _initDatabase();
-    return _database!;
+    if (_isInitializing) {
+      // 等待初始化完成
+      while (_database == null) {
+        await Future.delayed(const Duration(milliseconds: 50));
+      }
+      return _database!;
+    }
+    _isInitializing = true;
+    try {
+      _database = await _initDatabase();
+      return _database!;
+    } finally {
+      _isInitializing = false;
+    }
   }
 
   Future<Database> _initDatabase() async {
     final path = join(await getDatabasesPath(), 'yaya_diary.db');
+
+    // Web 平台不支持，使用移动端 sqflite
+    // Web 平台需要额外的配置，如使用 indexed_db 或 sqflite_common_ffi_web
+    if (kIsWeb) {
+      throw UnsupportedError(
+        'Web platform is not supported yet. Please run on iOS or Android.',
+      );
+    }
+
+    // 移动端使用默认的 sqflite
     return await openDatabase(
       path,
       version: 1,
