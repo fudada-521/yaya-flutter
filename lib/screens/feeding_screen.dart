@@ -19,6 +19,7 @@ class _FeedingScreenState extends State<FeedingScreen> {
   DateTime _selectedDateTime = DateTime.now();
   String _selectedType = 'breast';
   String? _selectedMethod;
+  int? _selectedDuration; // minutes, for breast feeding
 
   @override
   void initState() {
@@ -282,7 +283,8 @@ class _FeedingScreenState extends State<FeedingScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _buildQuickButton('母乳', Icons.favorite, const Color(0xFFF48FB1), () => _quickRecord('breast', babyId)),
+              _buildQuickButton('母乳亲喂', Icons.favorite, const Color(0xFFF48FB1), () => _quickRecord('breast', babyId)),
+              _buildQuickButton('母乳瓶喂', Icons.local_drink, const Color(0xFFE91E63), () => _quickRecord('pumped', babyId)),
               _buildQuickButton('奶粉', Icons.local_dining, const Color(0xFFFF8A65), () => _quickRecord('bottle', babyId)),
               _buildQuickButton('辅食', Icons.restaurant, const Color(0xFF81C784), () => _quickRecord('solid', babyId)),
             ],
@@ -378,9 +380,11 @@ class _FeedingScreenState extends State<FeedingScreen> {
   Widget _buildRecordCard(FeedingRecord record) {
     final typeColor = record.type == 'breast'
         ? const Color(0xFFF48FB1)
-        : record.type == 'bottle'
-            ? const Color(0xFFFF8A65)
-            : const Color(0xFF81C784);
+        : record.type == 'pumped'
+            ? const Color(0xFFE91E63)
+            : record.type == 'bottle'
+                ? const Color(0xFFFF8A65)
+                : const Color(0xFF81C784);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -418,7 +422,9 @@ class _FeedingScreenState extends State<FeedingScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '${record.typeDisplayName}${record.amount != null ? ' ${record.amount}ml' : ''}',
+                        record.type == 'breast'
+                            ? '${record.typeDisplayName}${record.durationDisplayName.isNotEmpty ? ' ${record.durationDisplayName}' : ''}'
+                            : '${record.typeDisplayName}${record.amount != null ? ' ${record.amount}ml' : ''}',
                         style: const TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
@@ -427,7 +433,9 @@ class _FeedingScreenState extends State<FeedingScreen> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        '${DateFormat('MM-dd HH:mm').format(record.feedTime)}${record.method != null ? ' | ${record.methodDisplayName}' : ''}',
+                        record.type == 'breast'
+                            ? '${DateFormat('MM-dd HH:mm').format(record.feedTime)}${record.method != null ? ' | ${record.methodDisplayName}' : ''}'
+                            : DateFormat('MM-dd HH:mm').format(record.feedTime),
                         style: TextStyle(fontSize: 13, color: Colors.grey[500]),
                       ),
                       if (record.notes != null && record.notes!.isNotEmpty) ...[
@@ -499,6 +507,7 @@ class _FeedingScreenState extends State<FeedingScreen> {
     _selectedDateTime = DateTime.now();
     _selectedType = 'breast';
     _selectedMethod = null;
+    _selectedDuration = null;
     _amountController.clear();
     _notesController.clear();
 
@@ -546,9 +555,13 @@ class _FeedingScreenState extends State<FeedingScreen> {
                   if (_selectedType == 'breast') ...[
                     const SizedBox(height: 16),
                     _buildMethodSelector(selectedMethod: _selectedMethod, onMethodChanged: (m) => setState(() => _selectedMethod = m)),
+                    const SizedBox(height: 16),
+                    _buildDurationSelector(selectedDuration: _selectedDuration, onDurationChanged: (d) => setState(() => _selectedDuration = d)),
                   ],
-                  const SizedBox(height: 16),
-                  _buildMinimalistTextField(controller: _amountController, label: '奶量', hint: 'ml', suffix: 'ml'),
+                  if (_selectedType != 'breast') ...[
+                    const SizedBox(height: 16),
+                    _buildMinimalistTextField(controller: _amountController, label: '奶量', hint: 'ml', suffix: 'ml'),
+                  ],
                   const SizedBox(height: 16),
                   _buildMinimalistTextField(controller: _notesController, label: '备注', hint: '选填', maxLines: 2),
                   const SizedBox(height: 24),
@@ -573,6 +586,7 @@ class _FeedingScreenState extends State<FeedingScreen> {
     _selectedDateTime = record.feedTime;
     _selectedType = record.type;
     _selectedMethod = record.method;
+    _selectedDuration = record.duration;
     _amountController.text = record.amount?.toString() ?? '';
     _notesController.text = record.notes ?? '';
 
@@ -620,9 +634,13 @@ class _FeedingScreenState extends State<FeedingScreen> {
                   if (_selectedType == 'breast') ...[
                     const SizedBox(height: 16),
                     _buildMethodSelector(selectedMethod: _selectedMethod, onMethodChanged: (m) => setState(() => _selectedMethod = m)),
+                    const SizedBox(height: 16),
+                    _buildDurationSelector(selectedDuration: _selectedDuration, onDurationChanged: (d) => setState(() => _selectedDuration = d)),
                   ],
-                  const SizedBox(height: 16),
-                  _buildMinimalistTextField(controller: _amountController, label: '奶量', hint: 'ml', suffix: 'ml'),
+                  if (_selectedType != 'breast') ...[
+                    const SizedBox(height: 16),
+                    _buildMinimalistTextField(controller: _amountController, label: '奶量', hint: 'ml', suffix: 'ml'),
+                  ],
                   const SizedBox(height: 16),
                   _buildMinimalistTextField(controller: _notesController, label: '备注', hint: '选填', maxLines: 2),
                   const SizedBox(height: 24),
@@ -707,7 +725,8 @@ class _FeedingScreenState extends State<FeedingScreen> {
 
   Widget _buildTypeSelector({required String selectedType, required ValueChanged<String> onTypeChanged}) {
     final types = [
-      {'value': 'breast', 'label': '母乳', 'icon': Icons.favorite, 'color': const Color(0xFFF48FB1)},
+      {'value': 'breast', 'label': '母乳亲喂', 'icon': Icons.favorite, 'color': const Color(0xFFF48FB1)},
+      {'value': 'pumped', 'label': '母乳瓶喂', 'icon': Icons.local_drink, 'color': const Color(0xFFE91E63)},
       {'value': 'bottle', 'label': '奶粉', 'icon': Icons.local_dining, 'color': const Color(0xFFFF8A65)},
       {'value': 'solid', 'label': '辅食', 'icon': Icons.restaurant, 'color': const Color(0xFF81C784)},
     ];
@@ -717,36 +736,36 @@ class _FeedingScreenState extends State<FeedingScreen> {
       children: [
         Text('喂养类型', style: TextStyle(fontSize: 13, color: Colors.grey[600], fontWeight: FontWeight.w500)),
         const SizedBox(height: 8),
-        Row(
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
           children: types.map((type) {
             final isSelected = selectedType == type['value'];
             final color = type['color'] as Color;
-            return Expanded(
-              child: GestureDetector(
-                onTap: () => onTypeChanged(type['value'] as String),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  margin: const EdgeInsets.only(right: 8),
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  decoration: BoxDecoration(
-                    color: isSelected ? color.withAlpha(25) : Colors.grey[50],
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: isSelected ? color : Colors.grey[200]!, width: isSelected ? 1.5 : 1),
-                  ),
-                  child: Column(
-                    children: [
-                      Icon(type['icon'] as IconData, color: isSelected ? color : Colors.grey[400], size: 22),
-                      const SizedBox(height: 4),
-                      Text(
-                        type['label'] as String,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                          color: isSelected ? color : Colors.grey[500],
-                        ),
+            return GestureDetector(
+              onTap: () => onTypeChanged(type['value'] as String),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  color: isSelected ? color.withAlpha(25) : Colors.grey[50],
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: isSelected ? color : Colors.grey[200]!, width: isSelected ? 1.5 : 1),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(type['icon'] as IconData, color: isSelected ? color : Colors.grey[400], size: 20),
+                    const SizedBox(width: 6),
+                    Text(
+                      type['label'] as String,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                        color: isSelected ? color : Colors.grey[600],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             );
@@ -792,6 +811,50 @@ class _FeedingScreenState extends State<FeedingScreen> {
                         color: isSelected ? const Color(0xFFF48FB1) : Colors.grey[500],
                       ),
                     ),
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDurationSelector({required int? selectedDuration, required ValueChanged<int?> onDurationChanged}) {
+    // 预设时长选项（分钟）
+    final presetDurations = [5, 10, 15, 20, 25, 30, 40, 50, 60];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('喂养时长', style: TextStyle(fontSize: 13, color: Colors.grey[600], fontWeight: FontWeight.w500)),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: presetDurations.map((minutes) {
+            final isSelected = selectedDuration == minutes;
+            final hours = minutes ~/ 60;
+            final mins = minutes % 60;
+            final label = hours > 0 ? '${hours}h${mins > 0 ? '${mins}m' : ''}' : '${mins}m';
+
+            return GestureDetector(
+              onTap: () => onDurationChanged(isSelected ? null : minutes),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                decoration: BoxDecoration(
+                  color: isSelected ? const Color(0xFFF48FB1).withAlpha(25) : Colors.grey[50],
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: isSelected ? const Color(0xFFF48FB1) : Colors.grey[200]!, width: isSelected ? 1.5 : 1),
+                ),
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                    color: isSelected ? const Color(0xFFF48FB1) : Colors.grey[500],
                   ),
                 ),
               ),
@@ -882,6 +945,7 @@ class _FeedingScreenState extends State<FeedingScreen> {
       amount: double.tryParse(_amountController.text),
       type: _selectedType,
       method: _selectedMethod,
+      duration: _selectedType == 'breast' ? _selectedDuration : null,
       notes: _notesController.text.isEmpty ? null : _notesController.text,
     );
     Provider.of<RecordsProvider>(context, listen: false).addFeedingRecord(record);
@@ -894,6 +958,7 @@ class _FeedingScreenState extends State<FeedingScreen> {
       amount: double.tryParse(_amountController.text),
       type: _selectedType,
       method: _selectedMethod,
+      duration: _selectedType == 'breast' ? _selectedDuration : null,
       notes: _notesController.text.isEmpty ? null : _notesController.text,
     );
     Provider.of<RecordsProvider>(context, listen: false).updateFeedingRecord(record);

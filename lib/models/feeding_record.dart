@@ -5,8 +5,9 @@ class FeedingRecord {
   final String babyId;
   final DateTime feedTime;
   final double? amount; // ml or g
-  final String type; // 'breast', 'bottle', 'solid'
+  final String type; // 'breast', 'pumped', 'bottle', 'solid'
   final String? method; // 'left', 'right', 'mixed' for breast
+  final int? duration; // minutes, for breast feeding
   final String? notes;
   final DateTime createdAt;
 
@@ -17,6 +18,7 @@ class FeedingRecord {
     this.amount,
     required this.type,
     this.method,
+    this.duration,
     this.notes,
     DateTime? createdAt,
   }) : id = id ?? const Uuid().v4(),
@@ -30,6 +32,7 @@ class FeedingRecord {
       'amount': amount,
       'type': type,
       'method': method,
+      'duration': duration,
       'notes': notes,
       'createdAt': createdAt.toIso8601String(),
     };
@@ -43,6 +46,7 @@ class FeedingRecord {
       amount: map['amount']?.toDouble(),
       type: map['type'],
       method: map['method'],
+      duration: map['duration'],
       notes: map['notes'],
       createdAt: DateTime.parse(map['createdAt']),
     );
@@ -55,6 +59,7 @@ class FeedingRecord {
     double? amount,
     String? type,
     String? method,
+    int? duration,
     String? notes,
     DateTime? createdAt,
   }) {
@@ -65,6 +70,7 @@ class FeedingRecord {
       amount: amount ?? this.amount,
       type: type ?? this.type,
       method: method ?? this.method,
+      duration: duration ?? this.duration,
       notes: notes ?? this.notes,
       createdAt: createdAt ?? this.createdAt,
     );
@@ -73,7 +79,9 @@ class FeedingRecord {
   String get typeDisplayName {
     switch (type) {
       case 'breast':
-        return '母乳';
+        return '母乳亲喂';
+      case 'pumped':
+        return '母乳瓶喂';
       case 'bottle':
         return '奶粉';
       case 'solid':
@@ -94,5 +102,15 @@ class FeedingRecord {
       default:
         return method ?? '';
     }
+  }
+
+  String get durationDisplayName {
+    if (duration == null) return '';
+    final hours = duration! ~/ 60;
+    final minutes = duration! % 60;
+    if (hours > 0) {
+      return '${hours}小时${minutes}分钟';
+    }
+    return '${minutes}分钟';
   }
 }

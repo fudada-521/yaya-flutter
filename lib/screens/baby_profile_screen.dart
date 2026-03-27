@@ -317,41 +317,140 @@ class _BabyProfileScreenState extends State<BabyProfileScreen> {
       return const SizedBox.shrink();
     }
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              '切换宝宝',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            ...babies.map((baby) {
-              final isSelected = baby.id == currentBaby.id;
-              return ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: baby.gender == 'male' ? Colors.blue : Colors.pink,
-                  child: Text(
-                    baby.name[0],
-                    style: const TextStyle(color: Colors.white),
-                  ),
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withAlpha(20),
+            blurRadius: 20,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.orange[50],
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                title: Text(baby.name),
-                subtitle: Text(baby.ageString),
-                trailing: isSelected
-                    ? const Icon(Icons.check_circle, color: Colors.green)
-                    : null,
-                onTap: isSelected
-                    ? null
-                    : () {
-                        babyProvider.setCurrentBaby(baby);
-                      },
-              );
-            }),
-          ],
-        ),
+                child: Icon(
+                  Icons.swap_horiz,
+                  color: Colors.orange[400],
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Text(
+                '切换宝宝',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF2D2D2D),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          ...babies.map((baby) {
+            final isSelected = baby.id == currentBaby.id;
+            final babyColor = baby.gender == 'male' ? const Color(0xFF64B5F6) : const Color(0xFFF48FB1);
+            return GestureDetector(
+              onTap: isSelected
+                  ? null
+                  : () {
+                      babyProvider.setCurrentBaby(baby);
+                    },
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: isSelected ? babyColor.withAlpha(15) : Colors.grey[50],
+                  borderRadius: BorderRadius.circular(12),
+                  border: isSelected
+                      ? Border.all(color: babyColor.withAlpha(100), width: 1.5)
+                      : null,
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: babyColor.withAlpha(50),
+                          width: 2,
+                        ),
+                      ),
+                      child: CircleAvatar(
+                        radius: 20,
+                        backgroundColor: babyColor.withAlpha(25),
+                        child: Text(
+                          baby.name[0],
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: babyColor,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            baby.name,
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: isSelected ? babyColor : const Color(0xFF2D2D2D),
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            baby.ageString,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[500],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (isSelected)
+                      Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: Colors.green.withAlpha(25),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.check,
+                          color: Colors.green,
+                          size: 16,
+                        ),
+                      )
+                    else
+                      Icon(
+                        Icons.chevron_right,
+                        color: Colors.grey[300],
+                        size: 20,
+                      ),
+                  ],
+                ),
+              ),
+            );
+          }),
+        ],
       ),
     );
   }
