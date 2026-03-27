@@ -14,7 +14,7 @@ void main() {
 }
 
 class YayaDiaryApp extends StatelessWidget {
-  const YayaDiaryApp({super.key});
+  const YayaDiaryApp({super.key});  // 芽芽日记
 
   @override
   Widget build(BuildContext context) {

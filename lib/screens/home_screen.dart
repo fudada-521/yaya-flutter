@@ -33,7 +33,7 @@ class _HomeScreenState extends State<HomeScreen> {
         elevation: 0,
         centerTitle: false,
         title: const Text(
-          '丫丫日记',
+          '芽芽日记',
           style: TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.bold,
@@ -104,7 +104,12 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildNavItem(int index, IconData icon, IconData activeIcon, String label) {
+  Widget _buildNavItem(
+    int index,
+    IconData icon,
+    IconData activeIcon,
+    String label,
+  ) {
     final isSelected = _selectedIndex == index;
     return GestureDetector(
       onTap: () => setState(() => _selectedIndex = index),
@@ -112,7 +117,9 @@ class _HomeScreenState extends State<HomeScreen> {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFFF8A65).withAlpha(25) : Colors.transparent,
+          color: isSelected
+              ? const Color(0xFFFF8A65).withAlpha(25)
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
@@ -292,10 +299,7 @@ class DashboardPage extends StatelessWidget {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [
-                babyColor.withAlpha(200),
-                babyColor.withAlpha(150),
-              ],
+              colors: [babyColor.withAlpha(200), babyColor.withAlpha(150)],
             ),
             borderRadius: BorderRadius.circular(20),
           ),
@@ -306,7 +310,10 @@ class DashboardPage extends StatelessWidget {
                 padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white.withAlpha(100), width: 3),
+                  border: Border.all(
+                    color: Colors.white.withAlpha(100),
+                    width: 3,
+                  ),
                 ),
                 child: CircleAvatar(
                   radius: 32,
@@ -336,7 +343,10 @@ class DashboardPage extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.white.withAlpha(50),
                         borderRadius: BorderRadius.circular(8),
@@ -387,11 +397,7 @@ class DashboardPage extends StatelessWidget {
               color: Colors.orange[50],
               shape: BoxShape.circle,
             ),
-            child: Icon(
-              Icons.child_care,
-              size: 48,
-              color: Colors.orange[300],
-            ),
+            child: Icon(Icons.child_care, size: 48, color: Colors.orange[300]),
           ),
           const SizedBox(height: 16),
           Text(
@@ -405,10 +411,7 @@ class DashboardPage extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             '点击下方按钮添加宝宝档案',
-            style: TextStyle(
-              fontSize: 13,
-              color: Colors.grey[500],
-            ),
+            style: TextStyle(fontSize: 13, color: Colors.grey[500]),
           ),
           const SizedBox(height: 16),
           GestureDetector(
@@ -461,7 +464,11 @@ class DashboardPage extends StatelessWidget {
                       color: Colors.orange[50],
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: Icon(Icons.today, color: Colors.orange[400], size: 20),
+                    child: Icon(
+                      Icons.today,
+                      color: Colors.orange[400],
+                      size: 20,
+                    ),
                   ),
                   const SizedBox(width: 12),
                   const Text(
@@ -478,9 +485,24 @@ class DashboardPage extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  _buildStatItem('喂养', '${todayStats['feedingCount']}次', const Color(0xFFFF8A65), Icons.restaurant),
-                  _buildStatItem('睡眠', '${todayStats['totalSleepDuration'].inHours}小时', const Color(0xFF64B5F6), Icons.bedtime),
-                  _buildStatItem('换尿布', '${todayStats['diaperCount']}次', const Color(0xFF81C784), Icons.baby_changing_station),
+                  _buildStatItem(
+                    '喂养',
+                    '${todayStats['feedingCount']}次',
+                    const Color(0xFFFF8A65),
+                    Icons.restaurant,
+                  ),
+                  _buildStatItem(
+                    '睡眠',
+                    '${todayStats['totalSleepDuration'].inHours}小时',
+                    const Color(0xFF64B5F6),
+                    Icons.bedtime,
+                  ),
+                  _buildStatItem(
+                    '换尿布',
+                    '${todayStats['diaperCount']}次',
+                    const Color(0xFF81C784),
+                    Icons.baby_changing_station,
+                  ),
                 ],
               ),
             ],
@@ -490,7 +512,12 @@ class DashboardPage extends StatelessWidget {
     );
   }
 
-  Widget _buildStatItem(String label, String value, Color color, IconData icon) {
+  Widget _buildStatItem(
+    String label,
+    String value,
+    Color color,
+    IconData icon,
+  ) {
     return Column(
       children: [
         Container(
@@ -511,13 +538,7 @@ class DashboardPage extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 2),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey[500],
-          ),
-        ),
+        Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[500])),
       ],
     );
   }
@@ -551,7 +572,11 @@ class DashboardPage extends StatelessWidget {
                       color: Colors.purple[50],
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: Icon(Icons.history, color: Colors.purple[400], size: 20),
+                    child: Icon(
+                      Icons.history,
+                      color: Colors.purple[400],
+                      size: 20,
+                    ),
                   ),
                   const SizedBox(width: 12),
                   const Text(
@@ -571,7 +596,11 @@ class DashboardPage extends StatelessWidget {
                     padding: const EdgeInsets.all(24),
                     child: Column(
                       children: [
-                        Icon(Icons.inbox_outlined, size: 48, color: Colors.grey[300]),
+                        Icon(
+                          Icons.inbox_outlined,
+                          size: 48,
+                          color: Colors.grey[300],
+                        ),
                         const SizedBox(height: 12),
                         Text(
                           '暂无记录，快去添加吧~',
@@ -603,7 +632,8 @@ class DashboardPage extends StatelessWidget {
     if (record is FeedingRecord) {
       icon = Icons.restaurant;
       color = const Color(0xFFFF8A65);
-      title = '${record.typeDisplayName}${record.amount != null ? ' ${record.amount}ml' : ''}';
+      title =
+          '${record.typeDisplayName}${record.amount != null ? ' ${record.amount}ml' : ''}';
       subtitle = record.methodDisplayName;
       time = record.feedTime;
     } else if (record is SleepRecord) {
@@ -673,10 +703,7 @@ class DashboardPage extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   subtitle,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[500],
-                  ),
+                  style: TextStyle(fontSize: 12, color: Colors.grey[500]),
                 ),
               ],
             ),
@@ -689,10 +716,7 @@ class DashboardPage extends StatelessWidget {
             ),
             child: Text(
               timeText,
-              style: TextStyle(
-                fontSize: 11,
-                color: Colors.grey[500],
-              ),
+              style: TextStyle(fontSize: 11, color: Colors.grey[500]),
             ),
           ),
         ],
@@ -799,10 +823,7 @@ class RecordsPage extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       subtitle,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey[500],
-                      ),
+                      style: TextStyle(fontSize: 13, color: Colors.grey[500]),
                     ),
                   ],
                 ),
@@ -871,7 +892,11 @@ class StatisticsPage extends StatelessWidget {
                   color: Colors.orange[50],
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(Icons.analytics_outlined, color: Colors.orange[400], size: 20),
+                child: Icon(
+                  Icons.analytics_outlined,
+                  color: Colors.orange[400],
+                  size: 20,
+                ),
               ),
               const SizedBox(width: 12),
               const Text(
@@ -890,11 +915,23 @@ class StatisticsPage extends StatelessWidget {
               final todayStats = recordsProvider.getTodayStats();
               return Column(
                 children: [
-                  _buildStatRow('今日喂养', '${todayStats['feedingCount']}次', const Color(0xFFFF8A65)),
+                  _buildStatRow(
+                    '今日喂养',
+                    '${todayStats['feedingCount']}次',
+                    const Color(0xFFFF8A65),
+                  ),
                   const SizedBox(height: 12),
-                  _buildStatRow('今日睡眠', '${todayStats['totalSleepDuration'].inHours}小时', const Color(0xFF64B5F6)),
+                  _buildStatRow(
+                    '今日睡眠',
+                    '${todayStats['totalSleepDuration'].inHours}小时',
+                    const Color(0xFF64B5F6),
+                  ),
                   const SizedBox(height: 12),
-                  _buildStatRow('今日换尿布', '${todayStats['diaperCount']}次', const Color(0xFF81C784)),
+                  _buildStatRow(
+                    '今日换尿布',
+                    '${todayStats['diaperCount']}次',
+                    const Color(0xFF81C784),
+                  ),
                 ],
               );
             },
@@ -914,22 +951,13 @@ class StatisticsPage extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 15,
-              color: Colors.grey[700],
-            ),
-          ),
+          Text(label, style: TextStyle(fontSize: 15, color: Colors.grey[700])),
           Row(
             children: [
               Container(
                 width: 8,
                 height: 8,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: color,
-                ),
+                decoration: BoxDecoration(shape: BoxShape.circle, color: color),
               ),
               const SizedBox(width: 8),
               Text(
@@ -989,18 +1017,42 @@ class StatisticsPage extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildTrendItem(context, '喂养', Icons.restaurant, const Color(0xFFFF8A65), () {
-                Navigator.pushNamed(context, '/feeding');
-              }),
-              _buildTrendItem(context, '睡眠', Icons.bedtime, const Color(0xFF64B5F6), () {
-                Navigator.pushNamed(context, '/sleep');
-              }),
-              _buildTrendItem(context, '尿布', Icons.baby_changing_station, const Color(0xFF81C784), () {
-                Navigator.pushNamed(context, '/diaper');
-              }),
-              _buildTrendItem(context, '成长', Icons.trending_up, const Color(0xFFBA68C8), () {
-                Navigator.pushNamed(context, '/growth');
-              }),
+              _buildTrendItem(
+                context,
+                '喂养',
+                Icons.restaurant,
+                const Color(0xFFFF8A65),
+                () {
+                  Navigator.pushNamed(context, '/feeding');
+                },
+              ),
+              _buildTrendItem(
+                context,
+                '睡眠',
+                Icons.bedtime,
+                const Color(0xFF64B5F6),
+                () {
+                  Navigator.pushNamed(context, '/sleep');
+                },
+              ),
+              _buildTrendItem(
+                context,
+                '尿布',
+                Icons.baby_changing_station,
+                const Color(0xFF81C784),
+                () {
+                  Navigator.pushNamed(context, '/diaper');
+                },
+              ),
+              _buildTrendItem(
+                context,
+                '成长',
+                Icons.trending_up,
+                const Color(0xFFBA68C8),
+                () {
+                  Navigator.pushNamed(context, '/growth');
+                },
+              ),
             ],
           ),
         ],
@@ -1085,25 +1137,51 @@ class StatisticsPage extends StatelessWidget {
               final allRecords = recordsProvider.getRecentRecords(limit: 50);
               final feedingRecords = recordsProvider.feedingRecords;
               final totalFeeding = feedingRecords.length;
-              final totalFeedingAmount = feedingRecords.fold<double>(0, (sum, r) => sum + (r.amount ?? 0));
+              final totalFeedingAmount = feedingRecords.fold<double>(
+                0,
+                (sum, r) => sum + (r.amount ?? 0),
+              );
               final sleepRecords = recordsProvider.sleepRecords;
-              final totalSleepDuration = sleepRecords.fold<Duration>(Duration.zero, (sum, r) => sum + (r.duration ?? Duration.zero));
+              final totalSleepDuration = sleepRecords.fold<Duration>(
+                Duration.zero,
+                (sum, r) => sum + (r.duration ?? Duration.zero),
+              );
               final diaperRecords = recordsProvider.diaperRecords;
               final totalDiaper = diaperRecords.length;
 
               return Column(
                 children: [
-                  _buildDetailStat('累计喂养次数', '$totalFeeding次', const Color(0xFFFF8A65)),
+                  _buildDetailStat(
+                    '累计喂养次数',
+                    '$totalFeeding次',
+                    const Color(0xFFFF8A65),
+                  ),
                   if (totalFeedingAmount > 0) ...[
                     const SizedBox(height: 10),
-                    _buildDetailStat('累计奶量', '${totalFeedingAmount.toStringAsFixed(0)}ml', const Color(0xFFFF8A65)),
+                    _buildDetailStat(
+                      '累计奶量',
+                      '${totalFeedingAmount.toStringAsFixed(0)}ml',
+                      const Color(0xFFFF8A65),
+                    ),
                   ],
                   const SizedBox(height: 10),
-                  _buildDetailStat('累计睡眠次数', '${sleepRecords.length}次', const Color(0xFF64B5F6)),
+                  _buildDetailStat(
+                    '累计睡眠次数',
+                    '${sleepRecords.length}次',
+                    const Color(0xFF64B5F6),
+                  ),
                   const SizedBox(height: 10),
-                  _buildDetailStat('累计睡眠时长', '${totalSleepDuration.inHours}小时', const Color(0xFF64B5F6)),
+                  _buildDetailStat(
+                    '累计睡眠时长',
+                    '${totalSleepDuration.inHours}小时',
+                    const Color(0xFF64B5F6),
+                  ),
                   const SizedBox(height: 10),
-                  _buildDetailStat('累计换尿布次数', '$totalDiaper次', const Color(0xFF81C784)),
+                  _buildDetailStat(
+                    '累计换尿布次数',
+                    '$totalDiaper次',
+                    const Color(0xFF81C784),
+                  ),
                   const SizedBox(height: 16),
                   Container(
                     padding: const EdgeInsets.all(12),
@@ -1113,7 +1191,11 @@ class StatisticsPage extends StatelessWidget {
                     ),
                     child: Row(
                       children: [
-                        Icon(Icons.info_outline, size: 16, color: Colors.grey[500]),
+                        Icon(
+                          Icons.info_outline,
+                          size: 16,
+                          color: Colors.grey[500],
+                        ),
                         const SizedBox(width: 8),
                         Text(
                           '数据基于最近${allRecords.length}条记录',
@@ -1138,13 +1220,7 @@ class StatisticsPage extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 14,
-            color: Colors.grey[600],
-          ),
-        ),
+        Text(label, style: TextStyle(fontSize: 14, color: Colors.grey[600])),
         Text(
           value,
           style: TextStyle(
@@ -1356,25 +1432,20 @@ class SettingsPage extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w500,
-                      color: isDestructive ? Colors.red[400] : const Color(0xFF2D2D2D),
+                      color: isDestructive
+                          ? Colors.red[400]
+                          : const Color(0xFF2D2D2D),
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     subtitle,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[500],
-                    ),
+                    style: TextStyle(fontSize: 12, color: Colors.grey[500]),
                   ),
                 ],
               ),
             ),
-            Icon(
-              Icons.chevron_right,
-              color: Colors.grey[300],
-              size: 20,
-            ),
+            Icon(Icons.chevron_right, color: Colors.grey[300], size: 20),
           ],
         ),
       ),
@@ -1385,11 +1456,8 @@ class SettingsPage extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) => _buildMinimalistDialog(
-        context,
-        title: '通知提醒',
-        content: '通知功能开发中...',
-      ),
+      builder: (context) =>
+          _buildMinimalistDialog(context, title: '通知提醒', content: '通知功能开发中...'),
     );
   }
 
@@ -1397,11 +1465,8 @@ class SettingsPage extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) => _buildMinimalistDialog(
-        context,
-        title: '主题设置',
-        content: '主题功能开发中...',
-      ),
+      builder: (context) =>
+          _buildMinimalistDialog(context, title: '主题设置', content: '主题功能开发中...'),
     );
   }
 
@@ -1409,11 +1474,8 @@ class SettingsPage extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) => _buildMinimalistDialog(
-        context,
-        title: '数据备份',
-        content: '备份功能开发中...',
-      ),
+      builder: (context) =>
+          _buildMinimalistDialog(context, title: '数据备份', content: '备份功能开发中...'),
     );
   }
 
@@ -1421,11 +1483,8 @@ class SettingsPage extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) => _buildMinimalistDialog(
-        context,
-        title: '数据恢复',
-        content: '恢复功能开发中...',
-      ),
+      builder: (context) =>
+          _buildMinimalistDialog(context, title: '数据恢复', content: '恢复功能开发中...'),
     );
   }
 
@@ -1462,7 +1521,11 @@ class SettingsPage extends StatelessWidget {
                 color: Colors.red[50],
                 shape: BoxShape.circle,
               ),
-              child: Icon(Icons.warning_amber_rounded, color: Colors.red[400], size: 32),
+              child: Icon(
+                Icons.warning_amber_rounded,
+                color: Colors.red[400],
+                size: 32,
+              ),
             ),
             const SizedBox(height: 16),
             const Text(
@@ -1477,10 +1540,7 @@ class SettingsPage extends StatelessWidget {
             Text(
               '确定要删除所有数据吗？\n此操作不可恢复！',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[600],
-              ),
+              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
             ),
             const SizedBox(height: 24),
             Row(
@@ -1551,7 +1611,8 @@ class SettingsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildMinimalistDialog(BuildContext context, {
+  Widget _buildMinimalistDialog(
+    BuildContext context, {
     required String title,
     required String content,
   }) {
@@ -1589,10 +1650,7 @@ class SettingsPage extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             content,
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[600],
-            ),
+            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
           ),
           const SizedBox(height: 24),
           GestureDetector(
@@ -1656,10 +1714,7 @@ class SettingsPage extends StatelessWidget {
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [
-                    Colors.orange[200]!,
-                    Colors.pink[200]!,
-                  ],
+                  colors: [Colors.orange[200]!, Colors.pink[200]!],
                 ),
                 shape: BoxShape.circle,
               ),
@@ -1681,10 +1736,7 @@ class SettingsPage extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               '版本 1.0.0',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[500],
-              ),
+              style: TextStyle(fontSize: 14, color: Colors.grey[500]),
             ),
             const SizedBox(height: 20),
             Text(
@@ -1704,11 +1756,8 @@ class SettingsPage extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
-                '© 2024 Yaya Diary',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey[500],
-                ),
+                '© 2024 芽芽日记',
+                style: TextStyle(fontSize: 12, color: Colors.grey[500]),
               ),
             ),
             const SizedBox(height: 24),

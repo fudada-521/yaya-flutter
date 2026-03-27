@@ -34,7 +34,7 @@ class DatabaseHelper {
   }
 
   Future<Database> _initDatabase() async {
-    final path = join(await getDatabasesPath(), 'yaya_diary.db');
+    final path = join(await getDatabasesPath(), 'yaya_diary.db');  // 芽芽日记数据库
 
     // Web 平台不支持，使用移动端 sqflite
     // Web 平台需要额外的配置，如使用 indexed_db 或 sqflite_common_ffi_web
