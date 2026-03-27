@@ -5,6 +5,7 @@ import '../providers/baby_provider.dart';
 import '../models/diaper_record.dart';
 import 'package:intl/intl.dart';
 import 'record_bottom_sheet_helper.dart';
+import '../widgets/empty_baby_card.dart';
 
 class DiaperScreen extends StatefulWidget {
   const DiaperScreen({super.key});
@@ -267,39 +268,11 @@ class _DiaperScreenState extends State<DiaperScreen> {
   }
 
   Widget _buildNoBabyCard(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withAlpha(15),
-            blurRadius: 20,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        children: [
-          Icon(Icons.child_care, size: 48, color: Colors.grey[300]),
-          const SizedBox(height: 12),
-          Text('请先添加宝宝档案', style: TextStyle(color: Colors.grey[600])),
-          const SizedBox(height: 12),
-          GestureDetector(
-            onTap: () => Navigator.pushNamed(context, '/baby-profile'),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              decoration: BoxDecoration(
-                color: const Color(0xFF81C784),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Text('添加宝宝', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
-            ),
-          ),
-        ],
-      ),
+    return EmptyBabyCard(
+      title: '还没有添加宝宝信息哦~',
+      subtitle: '点击下方按钮添加宝宝档案',
+      buttonText: '添加宝宝信息',
+      onButtonPressed: () => Navigator.pushNamed(context, '/baby-profile'),
     );
   }
 

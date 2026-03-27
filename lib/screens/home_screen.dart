@@ -379,9 +379,9 @@ class DashboardPage extends StatelessWidget {
 
   Widget _buildEmptyBabyCard(BuildContext context) {
     return EmptyBabyCard(
-      title: '还没有添加宝宝哦~',
+      title: '还没有添加宝宝信息哦~',
       subtitle: '点击下方按钮添加宝宝档案',
-      buttonText: '添加宝宝',
+      buttonText: '添加宝宝信息',
       onButtonPressed: () => Navigator.pushNamed(context, '/baby-profile'),
     );
   }

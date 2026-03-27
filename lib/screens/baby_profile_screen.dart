@@ -90,7 +90,7 @@ class _BabyProfileScreenState extends State<BabyProfileScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
         child: EmptyBabyCard(
           title: '还没有添加宝宝信息哦~',
-          subtitle: '记录宝宝的成长每一刻',
+          subtitle: '点击下方按钮添加宝宝档案',
           buttonText: '添加宝宝信息',
           onButtonPressed: () => _showAddBabyDialog(context),
         ),
