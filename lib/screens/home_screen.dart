@@ -6,6 +6,7 @@ import '../models/feeding_record.dart';
 import '../models/sleep_record.dart';
 import '../models/diaper_record.dart';
 import '../models/growth_record.dart';
+import 'record_bottom_sheet_helper.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -190,7 +191,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: const Color(0xFFFF8A65),
                   onTap: () {
                     Navigator.pop(context);
-                    Navigator.pushNamed(context, '/feeding');
+                    RecordBottomSheetHelper.showAddFeedingRecord(context);
                   },
                 ),
                 _buildQuickRecordItem(
@@ -199,7 +200,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: const Color(0xFF64B5F6),
                   onTap: () {
                     Navigator.pop(context);
-                    Navigator.pushNamed(context, '/sleep');
+                    RecordBottomSheetHelper.showAddSleepRecord(context);
                   },
                 ),
                 _buildQuickRecordItem(
@@ -208,7 +209,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: const Color(0xFF81C784),
                   onTap: () {
                     Navigator.pop(context);
-                    Navigator.pushNamed(context, '/diaper');
+                    RecordBottomSheetHelper.showAddDiaperRecord(context);
                   },
                 ),
                 _buildQuickRecordItem(
@@ -217,7 +218,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: const Color(0xFFBA68C8),
                   onTap: () {
                     Navigator.pop(context);
-                    Navigator.pushNamed(context, '/growth');
+                    RecordBottomSheetHelper.showAddGrowthRecord(context);
                   },
                 ),
               ],
