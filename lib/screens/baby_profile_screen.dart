@@ -4,6 +4,7 @@ import '../providers/baby_provider.dart';
 import '../models/baby.dart';
 import 'package:intl/intl.dart';
 import '../widgets/empty_baby_card.dart';
+import 'record_bottom_sheet_helper.dart';
 
 class BabyProfileScreen extends StatefulWidget {
   const BabyProfileScreen({super.key});
@@ -92,7 +93,7 @@ class _BabyProfileScreenState extends State<BabyProfileScreen> {
           title: '还没有添加宝宝信息哦~',
           subtitle: '点击下方按钮添加宝宝档案',
           buttonText: '添加宝宝信息',
-          onButtonPressed: () => _showAddBabyDialog(context),
+          onButtonPressed: () => RecordBottomSheetHelper.showAddBaby(context),
         ),
       ),
     );
@@ -448,183 +449,8 @@ class _BabyProfileScreenState extends State<BabyProfileScreen> {
     return Center(
       child: _buildMinimalistButton(
         text: '+ 添加宝宝信息',
-        onPressed: () => _showAddBabyDialog(context),
+        onPressed: () => RecordBottomSheetHelper.showAddBaby(context),
         isPrimary: true,
-      ),
-    );
-  }
-
-  void _showAddBabyDialog(BuildContext context) {
-    final nameController = TextEditingController();
-    final birthWeightController = TextEditingController();
-    final birthHeightController = TextEditingController();
-    final notesController = TextEditingController();
-    DateTime selectedDate = DateTime.now();
-    String selectedGender = 'male';
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) => Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(24),
-              topRight: Radius.circular(24),
-            ),
-          ),
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-          ),
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 顶部拖动条
-                  Center(
-                    child: Container(
-                      width: 40,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[300],
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  // 标题
-                  const Text(
-                    '添加宝宝信息',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF2D2D2D),
-                      letterSpacing: -0.5,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    '记录宝宝的基本信息',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[500],
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-
-                  // 宝宝姓名
-                  _buildMinimalistTextField(
-                    controller: nameController,
-                    label: '宝宝姓名',
-                    hint: '请输入宝宝姓名',
-                    isRequired: true,
-                  ),
-                  const SizedBox(height: 24),
-
-                  // 出生日期
-                  _buildMinimalistDatePicker(
-                    context: context,
-                    label: '出生日期',
-                    selectedDate: selectedDate,
-                    onDateChanged: (date) => setState(() => selectedDate = date),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // 性别选择
-                  _buildMinimalistGenderSelector(
-                    selectedGender: selectedGender,
-                    onGenderChanged: (gender) => setState(() => selectedGender = gender),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // 出生体重和身高
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildMinimalistTextField(
-                          controller: birthWeightController,
-                          label: '出生体重',
-                          hint: 'kg',
-                          suffix: 'kg',
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: _buildMinimalistTextField(
-                          controller: birthHeightController,
-                          label: '出生身高',
-                          hint: 'cm',
-                          suffix: 'cm',
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-
-                  // 备注
-                  _buildMinimalistTextField(
-                    controller: notesController,
-                    label: '备注',
-                    hint: '选填，可添加备注信息',
-                    maxLines: 2,
-                  ),
-                  const SizedBox(height: 32),
-
-                  // 按钮组
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildMinimalistButton(
-                          text: '取消',
-                          onPressed: () => Navigator.pop(context),
-                          isPrimary: false,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: _buildMinimalistButton(
-                          text: '保存',
-                          onPressed: () {
-                            if (nameController.text.trim().isEmpty) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: const Text('请输入宝宝姓名'),
-                                  backgroundColor: Colors.orange[400],
-                                  behavior: SnackBarBehavior.floating,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                ),
-                              );
-                              return;
-                            }
-                            _saveBaby(
-                              context,
-                              name: nameController.text.trim(),
-                              birthDate: selectedDate,
-                              gender: selectedGender,
-                              birthWeight: double.tryParse(birthWeightController.text),
-                              birthHeight: double.tryParse(birthHeightController.text),
-                              notes: notesController.text.trim().isEmpty ? null : notesController.text.trim(),
-                            );
-                            Navigator.pop(context);
-                          },
-                          isPrimary: true,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                ],
-              ),
-            ),
-          ),
-        ),
       ),
     );
   }
@@ -1092,37 +918,6 @@ class _BabyProfileScreenState extends State<BabyProfileScreen> {
         ),
       ),
     );
-  }
-
-  Future<void> _saveBaby(
-    BuildContext context, {
-    required String name,
-    required DateTime birthDate,
-    required String gender,
-    double? birthWeight,
-    double? birthHeight,
-    String? notes,
-  }) async {
-    final baby = Baby(
-      name: name,
-      birthDate: birthDate,
-      gender: gender,
-      birthWeight: birthWeight,
-      birthHeight: birthHeight,
-      notes: notes,
-    );
-    final success = await Provider.of<BabyProvider>(context, listen: false).addBaby(baby);
-    if (context.mounted) {
-      if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('宝宝信息添加成功！'), backgroundColor: Colors.green),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('添加宝宝信息失败，请重试'), backgroundColor: Colors.red),
-        );
-      }
-    }
   }
 
   Future<void> _updateBaby(

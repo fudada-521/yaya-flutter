@@ -6,6 +6,7 @@ import '../models/feeding_record.dart';
 import '../models/sleep_record.dart';
 import '../models/diaper_record.dart';
 import '../models/growth_record.dart';
+import '../models/baby.dart';
 import 'package:intl/intl.dart';
 
 class RecordBottomSheetHelper {
@@ -1809,5 +1810,328 @@ class RecordBottomSheetHelper {
     );
     Provider.of<RecordsProvider>(context, listen: false).addGrowthRecord(record);
     Navigator.pop(context);
+  }
+
+  // ==================== 添加宝宝信息 BottomSheet ====================
+
+  static void showAddBaby(BuildContext context) {
+    final nameController = TextEditingController();
+    final birthWeightController = TextEditingController();
+    final birthHeightController = TextEditingController();
+    final notesController = TextEditingController();
+    DateTime selectedDate = DateTime.now();
+    String selectedGender = 'male';
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(24),
+              topRight: Radius.circular(24),
+            ),
+          ),
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 顶部拖动条
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  // 标题
+                  const Text(
+                    '添加宝宝信息',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF2D2D2D),
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '记录宝宝的基本信息',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[500],
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+
+                  // 宝宝姓名
+                  _buildTextField(nameController, '宝宝姓名', '请输入宝宝姓名'),
+                  const SizedBox(height: 24),
+
+                  // 出生日期
+                  _buildBabyDatePicker(
+                    context: context,
+                    selectedDate: selectedDate,
+                    onDateChanged: (date) => setState(() => selectedDate = date),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // 性别选择
+                  _buildBabyGenderSelector(
+                    selectedGender: selectedGender,
+                    onGenderChanged: (gender) => setState(() => selectedGender = gender),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // 出生体重和身高
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildTextField(birthWeightController, '出生体重', 'kg', suffix: 'kg'),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: _buildTextField(birthHeightController, '出生身高', 'cm', suffix: 'cm'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  // 备注
+                  _buildTextField(notesController, '备注', '选填，可添加备注信息', maxLines: 2),
+                  const SizedBox(height: 32),
+
+                  // 按钮组
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildButton('取消', false, () => Navigator.pop(context)),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: _buildButton('保存', true, () async {
+                          if (nameController.text.trim().isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: const Text('请输入宝宝姓名'),
+                                backgroundColor: Colors.orange[400],
+                                behavior: SnackBarBehavior.floating,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                            );
+                            return;
+                          }
+                          final baby = Baby(
+                            name: nameController.text.trim(),
+                            birthDate: selectedDate,
+                            gender: selectedGender,
+                            birthWeight: double.tryParse(birthWeightController.text),
+                            birthHeight: double.tryParse(birthHeightController.text),
+                            notes: notesController.text.trim().isEmpty ? null : notesController.text.trim(),
+                          );
+                          await Provider.of<BabyProvider>(context, listen: false).addBaby(baby);
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: const Text('宝宝信息添加成功！'),
+                                backgroundColor: Colors.green[400],
+                                behavior: SnackBarBehavior.floating,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                            );
+                          }
+                          Navigator.pop(context);
+                        }),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // 宝宝日期选择器
+  static Widget _buildBabyDatePicker({
+    required BuildContext context,
+    required DateTime selectedDate,
+    required Function(DateTime) onDateChanged,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '出生日期',
+          style: TextStyle(
+            fontSize: 13,
+            color: Colors.grey[600],
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 8),
+        GestureDetector(
+          onTap: () async {
+            final date = await showDatePicker(
+              context: context,
+              initialDate: selectedDate,
+              firstDate: DateTime(2000),
+              lastDate: DateTime.now(),
+              builder: (context, child) {
+                return Theme(
+                  data: Theme.of(context).copyWith(
+                    colorScheme: const ColorScheme.light(
+                      primary: Color(0xFFFF8A65),
+                    ),
+                  ),
+                  child: child!,
+                );
+              },
+            );
+            if (date != null) {
+              onDateChanged(date);
+            }
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: Colors.grey[50],
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey[200]!),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    DateFormat('yyyy年MM月dd日').format(selectedDate),
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: Colors.grey[700],
+                    ),
+                  ),
+                ),
+                Icon(Icons.calendar_today, size: 20, color: Colors.grey[500]),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // 宝宝性别选择器
+  static Widget _buildBabyGenderSelector({
+    required String selectedGender,
+    required Function(String) onGenderChanged,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '性别',
+          style: TextStyle(
+            fontSize: 13,
+            color: Colors.grey[600],
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: GestureDetector(
+                onTap: () => onGenderChanged('male'),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  decoration: BoxDecoration(
+                    color: selectedGender == 'male' ? const Color(0xFF64B5F6).withAlpha(25) : Colors.grey[50],
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: selectedGender == 'male' ? const Color(0xFF64B5F6) : Colors.grey[200]!,
+                      width: selectedGender == 'male' ? 2 : 1,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.male,
+                        color: selectedGender == 'male' ? const Color(0xFF64B5F6) : Colors.grey[400],
+                        size: 22,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '男宝宝',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: selectedGender == 'male' ? FontWeight.w600 : FontWeight.w500,
+                          color: selectedGender == 'male' ? const Color(0xFF64B5F6) : Colors.grey[500],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: GestureDetector(
+                onTap: () => onGenderChanged('female'),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  decoration: BoxDecoration(
+                    color: selectedGender == 'female' ? const Color(0xFFF48FB1).withAlpha(25) : Colors.grey[50],
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: selectedGender == 'female' ? const Color(0xFFF48FB1) : Colors.grey[200]!,
+                      width: selectedGender == 'female' ? 2 : 1,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.female,
+                        color: selectedGender == 'female' ? const Color(0xFFF48FB1) : Colors.grey[400],
+                        size: 22,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '女宝宝',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: selectedGender == 'female' ? FontWeight.w600 : FontWeight.w500,
+                          color: selectedGender == 'female' ? const Color(0xFFF48FB1) : Colors.grey[500],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
   }
 }
