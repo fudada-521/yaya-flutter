@@ -232,6 +232,20 @@ class RecordsProvider extends ChangeNotifier {
     }
   }
 
+  // 清空所有记录
+  Future<void> clearAllRecords() async {
+    try {
+      await _databaseHelper.clearAllData();
+      _feedingRecords = [];
+      _sleepRecords = [];
+      _diaperRecords = [];
+      _growthRecords = [];
+      notifyListeners();
+    } catch (e) {
+      debugPrint('清空所有记录失败: $e');
+    }
+  }
+
   // 统计方法
   Map<String, dynamic> getTodayStats() {
     final today = DateTime.now();

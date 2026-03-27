@@ -152,11 +152,23 @@ class DatabaseHelper {
 
   Future<void> deleteBaby(String babyId) async {
     final db = await database;
-    await db.delete(
-      'babies',
-      where: 'id = ?',
-      whereArgs: [babyId],
-    );
+    // 删除宝宝的所有相关记录
+    await db.delete('feeding_records', where: 'baby_id = ?', whereArgs: [babyId]);
+    await db.delete('sleep_records', where: 'baby_id = ?', whereArgs: [babyId]);
+    await db.delete('diaper_records', where: 'baby_id = ?', whereArgs: [babyId]);
+    await db.delete('growth_records', where: 'baby_id = ?', whereArgs: [babyId]);
+    // 最后删除宝宝本身
+    await db.delete('babies', where: 'id = ?', whereArgs: [babyId]);
+  }
+
+  // 清空所有数据
+  Future<void> clearAllData() async {
+    final db = await database;
+    await db.delete('feeding_records');
+    await db.delete('sleep_records');
+    await db.delete('diaper_records');
+    await db.delete('growth_records');
+    await db.delete('babies');
   }
 
   // Feeding record operations

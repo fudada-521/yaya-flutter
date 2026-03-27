@@ -16,7 +16,7 @@ class _BabyProfileScreenState extends State<BabyProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('宝宝档案'),
+        title: const Text('宝宝信息'),
       ),
       body: Consumer<BabyProvider>(
         builder: (context, babyProvider, child) {
@@ -112,7 +112,7 @@ class _BabyProfileScreenState extends State<BabyProfileScreen> {
               const SizedBox(height: 24),
               Center(
                 child: Text(
-                  '还没有添加宝宝哦~',
+                  '还没有添加宝宝信息哦~',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w600,
@@ -133,7 +133,7 @@ class _BabyProfileScreenState extends State<BabyProfileScreen> {
               const SizedBox(height: 32),
               Center(
                 child: _buildMinimalistButton(
-                  text: '添加宝宝',
+                  text: '添加宝宝信息',
                   onPressed: () => _showAddBabyDialog(context),
                   isPrimary: true,
                 ),
@@ -164,117 +164,125 @@ class _BabyProfileScreenState extends State<BabyProfileScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
+            Stack(
               children: [
-                Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: babyColor.withAlpha(50), width: 3),
-                  ),
-                  child: CircleAvatar(
-                    radius: 36,
-                    backgroundColor: babyColor.withAlpha(25),
-                    child: Text(
-                      baby.name[0],
-                      style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                        color: babyColor,
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: babyColor.withAlpha(50), width: 3),
                       ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        baby.name,
-                        style: const TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF2D2D2D),
+                      child: CircleAvatar(
+                        radius: 36,
+                        backgroundColor: babyColor.withAlpha(25),
+                        child: Text(
+                          baby.name[0],
+                          style: TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                            color: babyColor,
+                          ),
                         ),
                       ),
-                      const SizedBox(height: 6),
-                      Row(
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: babyColor.withAlpha(25),
-                              borderRadius: BorderRadius.circular(8),
+                          Text(
+                            baby.name,
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF2D2D2D),
                             ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  baby.gender == 'male' ? Icons.male : Icons.female,
-                                  size: 14,
-                                  color: babyColor,
+                          ),
+                          const SizedBox(height: 6),
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: babyColor.withAlpha(25),
+                                  borderRadius: BorderRadius.circular(8),
                                 ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  baby.gender == 'male' ? '男宝宝' : '女宝宝',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: babyColor,
-                                    fontWeight: FontWeight.w500,
-                                  ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      baby.gender == 'male' ? Icons.male : Icons.female,
+                                      size: 14,
+                                      color: babyColor,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      baby.gender == 'male' ? '男宝宝' : '女宝宝',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: babyColor,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ],
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            '今天是你出生的第${baby.ageInDays}天',
+                            style: TextStyle(
+                              color: Colors.grey[500],
+                              fontSize: 13,
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 6),
-                      Text(
-                        '今天是你出生的第${baby.ageInDays}天',
-                        style: TextStyle(
-                          color: Colors.grey[500],
-                          fontSize: 13,
+                    ),
+                  ],
+                ),
+                Positioned(
+                  top: -8,
+                  right: -8,
+                  child: PopupMenuButton<String>(
+                    icon: Icon(Icons.more_horiz, color: Colors.grey[400]),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    elevation: 8,
+                    color: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    onSelected: (value) {
+                      if (value == 'edit') {
+                        _showEditBabyDialog(context, baby);
+                      } else if (value == 'delete') {
+                        _showDeleteConfirmation(context, baby, babyProvider);
+                      }
+                    },
+                    itemBuilder: (context) => [
+                      PopupMenuItem(
+                        value: 'edit',
+                        child: Row(
+                          children: [
+                            Icon(Icons.edit_outlined, size: 18, color: Colors.grey[700]),
+                            const SizedBox(width: 10),
+                            const Text('编辑', style: TextStyle(fontSize: 14)),
+                          ],
+                        ),
+                      ),
+                      PopupMenuItem(
+                        value: 'delete',
+                        child: Row(
+                          children: [
+                            Icon(Icons.delete_outline, size: 18, color: Colors.red[400]),
+                            const SizedBox(width: 10),
+                            Text('删除', style: TextStyle(fontSize: 14, color: Colors.red[400])),
+                          ],
                         ),
                       ),
                     ],
                   ),
-                ),
-                PopupMenuButton<String>(
-                  icon: Icon(Icons.more_horiz, color: Colors.grey[400]),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  elevation: 8,
-                  color: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  onSelected: (value) {
-                    if (value == 'edit') {
-                      _showEditBabyDialog(context, baby);
-                    } else if (value == 'delete') {
-                      _showDeleteConfirmation(context, baby, babyProvider);
-                    }
-                  },
-                  itemBuilder: (context) => [
-                    PopupMenuItem(
-                      value: 'edit',
-                      child: Row(
-                        children: [
-                          Icon(Icons.edit_outlined, size: 18, color: Colors.grey[700]),
-                          const SizedBox(width: 10),
-                          const Text('编辑', style: TextStyle(fontSize: 14)),
-                        ],
-                      ),
-                    ),
-                    PopupMenuItem(
-                      value: 'delete',
-                      child: Row(
-                        children: [
-                          Icon(Icons.delete_outline, size: 18, color: Colors.red[400]),
-                          const SizedBox(width: 10),
-                          Text('删除', style: TextStyle(fontSize: 14, color: Colors.red[400])),
-                        ],
-                      ),
-                    ),
-                  ],
                 ),
               ],
             ),
@@ -486,7 +494,7 @@ class _BabyProfileScreenState extends State<BabyProfileScreen> {
   Widget _buildAddBabyButton(BuildContext context) {
     return Center(
       child: _buildMinimalistButton(
-        text: '+ 添加宝宝',
+        text: '+ 添加宝宝信息',
         onPressed: () => _showAddBabyDialog(context),
         isPrimary: true,
       ),
@@ -538,7 +546,7 @@ class _BabyProfileScreenState extends State<BabyProfileScreen> {
                   const SizedBox(height: 20),
                   // 标题
                   const Text(
-                    '添加宝宝',
+                    '添加宝宝信息',
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.w600,
@@ -1154,11 +1162,11 @@ class _BabyProfileScreenState extends State<BabyProfileScreen> {
     if (context.mounted) {
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('宝宝添加成功！'), backgroundColor: Colors.green),
+          const SnackBar(content: Text('宝宝信息添加成功！'), backgroundColor: Colors.green),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('添加宝宝失败，请重试'), backgroundColor: Colors.red),
+          const SnackBar(content: Text('添加宝宝信息失败，请重试'), backgroundColor: Colors.red),
         );
       }
     }
@@ -1201,7 +1209,7 @@ class _BabyProfileScreenState extends State<BabyProfileScreen> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('确认删除'),
-        content: Text('确定要删除 ${baby.name} 的档案吗？\n所有相关记录也将被删除。'),
+        content: Text('确定要删除 ${baby.name} 的信息吗？\n所有相关记录也将被删除。'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
@@ -1214,7 +1222,7 @@ class _BabyProfileScreenState extends State<BabyProfileScreen> {
               if (context.mounted) {
                 if (success) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('宝宝已删除'), backgroundColor: Colors.green),
+                    const SnackBar(content: Text('宝宝信息已删除'), backgroundColor: Colors.green),
                   );
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(

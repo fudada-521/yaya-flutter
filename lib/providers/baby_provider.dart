@@ -51,6 +51,12 @@ class BabyProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // 重新加载宝宝列表
+  Future<void> reloadBabies() async {
+    _currentBaby = null;
+    await _loadBabies();
+  }
+
   Future<bool> addBaby(Baby baby) async {
     try {
       await _databaseHelper.insertBaby(baby);
@@ -81,6 +87,15 @@ class BabyProvider extends ChangeNotifier {
     try {
       await _databaseHelper.deleteBaby(babyId);
       await _loadBabies();
+      // 如果删除的是当前宝宝，清除当前宝宝状态
+      if (_currentBaby != null && _currentBaby!.id == babyId) {
+        _currentBaby = null;
+      }
+      // 如果当前宝宝不在列表中了，也需要清空
+      if (_currentBaby != null && !_babies.any((b) => b.id == _currentBaby!.id)) {
+        _currentBaby = null;
+      }
+      notifyListeners();
       return true;
     } catch (e) {
       debugPrint('删除婴儿失败: $e');
