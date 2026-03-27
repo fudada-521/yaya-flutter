@@ -4,6 +4,7 @@ import '../providers/records_provider.dart';
 import '../providers/baby_provider.dart';
 import '../models/diaper_record.dart';
 import 'package:intl/intl.dart';
+import 'record_bottom_sheet_helper.dart';
 
 class DiaperScreen extends StatefulWidget {
   const DiaperScreen({super.key});
@@ -13,12 +14,6 @@ class DiaperScreen extends StatefulWidget {
 }
 
 class _DiaperScreenState extends State<DiaperScreen> {
-  final _notesController = TextEditingController();
-
-  DateTime _selectedDateTime = DateTime.now();
-  String _selectedType = 'wet';
-  String _selectedStatus = 'normal';
-
   @override
   void initState() {
     super.initState();
@@ -29,7 +24,6 @@ class _DiaperScreenState extends State<DiaperScreen> {
 
   @override
   void dispose() {
-    _notesController.dispose();
     super.dispose();
   }
 
@@ -118,7 +112,7 @@ class _DiaperScreenState extends State<DiaperScreen> {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          onTap: () => _showAddRecordDialog(context),
+          onTap: () => RecordBottomSheetHelper.showAddDiaperRecord(context),
           child: const Padding(
             padding: EdgeInsets.all(16),
             child: Icon(Icons.add, color: Colors.white, size: 28),
@@ -379,7 +373,7 @@ class _DiaperScreenState extends State<DiaperScreen> {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          onTap: () => _showEditRecordDialog(context, record),
+          onTap: () => RecordBottomSheetHelper.showEditDiaperRecord(context, record),
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
@@ -430,9 +424,14 @@ class _DiaperScreenState extends State<DiaperScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   onSelected: (value) {
                     if (value == 'edit') {
-                      _showEditRecordDialog(context, record);
+                      RecordBottomSheetHelper.showEditDiaperRecord(context, record);
                     } else if (value == 'delete') {
-                      _deleteRecord(context, record.id);
+                      RecordBottomSheetHelper.showDeleteConfirm(
+                        context,
+                        title: '确认删除',
+                        message: '确定要删除这条尿布记录吗？',
+                        onConfirm: () => Provider.of<RecordsProvider>(context, listen: false).deleteDiaperRecord(record.id),
+                      );
                     }
                   },
                   itemBuilder: (context) => [
@@ -474,457 +473,5 @@ class _DiaperScreenState extends State<DiaperScreen> {
       status: status,
     );
     Provider.of<RecordsProvider>(context, listen: false).addDiaperRecord(record);
-  }
-
-  void _showAddRecordDialog(BuildContext context) {
-    _selectedDateTime = DateTime.now();
-    _selectedType = 'wet';
-    _selectedStatus = 'normal';
-    _notesController.clear();
-
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) => Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.only(topLeft: Radius.circular(24), topRight: Radius.circular(24)),
-          ),
-          padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Container(
-                      width: 40,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[300],
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  const Text(
-                    '添加换尿布记录',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF2D2D2D),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  _buildDateTimePicker(context, setState),
-                  const SizedBox(height: 20),
-                  _buildTypeSelector(setState),
-                  const SizedBox(height: 16),
-                  _buildStatusSelector(setState),
-                  const SizedBox(height: 16),
-                  _buildMinimalistTextField(controller: _notesController, label: '备注', hint: '选填', maxLines: 2),
-                  const SizedBox(height: 24),
-                  Row(
-                    children: [
-                      Expanded(child: _buildDialogButton('取消', false, () => Navigator.pop(context))),
-                      const SizedBox(width: 12),
-                      Expanded(child: _buildDialogButton('保存', true, () => _saveRecord(context))),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showEditRecordDialog(BuildContext context, DiaperRecord record) {
-    _selectedDateTime = record.changeTime;
-    _selectedType = record.type;
-    _selectedStatus = record.status;
-    _notesController.text = record.notes ?? '';
-
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) => Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.only(topLeft: Radius.circular(24), topRight: Radius.circular(24)),
-          ),
-          padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Container(
-                      width: 40,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[300],
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  const Text(
-                    '编辑换尿布记录',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF2D2D2D),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  _buildDateTimePicker(context, setState),
-                  const SizedBox(height: 20),
-                  _buildTypeSelector(setState),
-                  const SizedBox(height: 16),
-                  _buildStatusSelector(setState),
-                  const SizedBox(height: 16),
-                  _buildMinimalistTextField(controller: _notesController, label: '备注', hint: '选填', maxLines: 2),
-                  const SizedBox(height: 24),
-                  Row(
-                    children: [
-                      Expanded(child: _buildDialogButton('取消', false, () => Navigator.pop(context))),
-                      const SizedBox(width: 12),
-                      Expanded(child: _buildDialogButton('保存', true, () => _updateRecord(context, record))),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDateTimePicker(BuildContext context, StateSetter setState) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('时间', style: TextStyle(fontSize: 13, color: Colors.grey[600], fontWeight: FontWeight.w500)),
-        const SizedBox(height: 8),
-        GestureDetector(
-          onTap: () async {
-            final date = await showDatePicker(
-              context: context,
-              initialDate: _selectedDateTime,
-              firstDate: DateTime.now().subtract(const Duration(days: 30)),
-              lastDate: DateTime.now(),
-              builder: (context, child) {
-                return Theme(
-                  data: Theme.of(context).copyWith(
-                    colorScheme: ColorScheme.light(
-                      primary: const Color(0xFF81C784),
-                      onPrimary: Colors.white,
-                      surface: Colors.white,
-                      onSurface: const Color(0xFF2D2D2D),
-                    ),
-                  ),
-                  child: child!,
-                );
-              },
-            );
-            if (date != null) {
-              final time = await showTimePicker(
-                context: context,
-                initialTime: TimeOfDay.fromDateTime(_selectedDateTime),
-              );
-              if (time != null) {
-                setState(() {
-                  _selectedDateTime = DateTime(date.year, date.month, date.day, time.hour, time.minute);
-                });
-              }
-            }
-          },
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            decoration: BoxDecoration(
-              color: Colors.grey[50],
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey[200]!),
-            ),
-            child: Row(
-              children: [
-                Icon(Icons.calendar_today_outlined, size: 18, color: Colors.grey[400]),
-                const SizedBox(width: 12),
-                Text(
-                  DateFormat('yyyy年MM月dd日 HH:mm').format(_selectedDateTime),
-                  style: const TextStyle(fontSize: 15, color: Color(0xFF2D2D2D)),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTypeSelector(StateSetter setState) {
-    final types = [
-      {'value': 'wet', 'label': '小便', 'icon': Icons.water_drop, 'color': const Color(0xFF64B5F6)},
-      {'value': 'dirty', 'label': '大便', 'icon': Icons.wc, 'color': const Color(0xFFFF8A65)},
-      {'value': 'mixed', 'label': '混合', 'icon': Icons.badge, 'color': const Color(0xFFBA68C8)},
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('类型', style: TextStyle(fontSize: 13, color: Colors.grey[600], fontWeight: FontWeight.w500)),
-        const SizedBox(height: 8),
-        Row(
-          children: types.map((type) {
-            final isSelected = _selectedType == type['value'];
-            final color = type['color'] as Color;
-            return Expanded(
-              child: GestureDetector(
-                onTap: () => setState(() => _selectedType = type['value'] as String),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  margin: const EdgeInsets.only(right: 8),
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  decoration: BoxDecoration(
-                    color: isSelected ? color.withAlpha(25) : Colors.grey[50],
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: isSelected ? color : Colors.grey[200]!, width: isSelected ? 1.5 : 1),
-                  ),
-                  child: Column(
-                    children: [
-                      Icon(type['icon'] as IconData, color: isSelected ? color : Colors.grey[400], size: 22),
-                      const SizedBox(height: 4),
-                      Text(
-                        type['label'] as String,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                          color: isSelected ? color : Colors.grey[500],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          }).toList(),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildStatusSelector(StateSetter setState) {
-    final statuses = [
-      {'value': 'normal', 'label': '正常', 'color': Colors.green},
-      {'value': 'loose', 'label': '稀便', 'color': Colors.orange},
-      {'value': 'hard', 'label': '硬便', 'color': Colors.deepOrange},
-      {'value': 'blood', 'label': '带血', 'color': Colors.red},
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('状态', style: TextStyle(fontSize: 13, color: Colors.grey[600], fontWeight: FontWeight.w500)),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: statuses.map((status) {
-            final isSelected = _selectedStatus == status['value'];
-            final color = status['color'] as Color;
-            return GestureDetector(
-              onTap: () => setState(() => _selectedStatus = status['value'] as String),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                decoration: BoxDecoration(
-                  color: isSelected ? color.withAlpha(25) : Colors.grey[50],
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: isSelected ? color : Colors.grey[200]!, width: isSelected ? 1.5 : 1),
-                ),
-                child: Text(
-                  status['label'] as String,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                    color: isSelected ? color : Colors.grey[500],
-                  ),
-                ),
-              ),
-            );
-          }).toList(),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMinimalistTextField({
-    required TextEditingController controller,
-    required String label,
-    required String hint,
-    int maxLines = 1,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: TextStyle(fontSize: 13, color: Colors.grey[600], fontWeight: FontWeight.w500)),
-        const SizedBox(height: 8),
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.grey[50],
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey[200]!),
-          ),
-          child: TextField(
-            controller: controller,
-            maxLines: maxLines,
-            style: const TextStyle(fontSize: 15, color: Color(0xFF2D2D2D)),
-            decoration: InputDecoration(
-              hintText: hint,
-              hintStyle: TextStyle(color: Colors.grey[400], fontSize: 15),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              border: InputBorder.none,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildDialogButton(String text, bool isPrimary, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        decoration: BoxDecoration(
-          color: isPrimary ? const Color(0xFF81C784) : Colors.grey[100],
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Center(
-          child: Text(
-            text,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: isPrimary ? Colors.white : Colors.grey[600],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _saveRecord(BuildContext context) {
-    final babyProvider = Provider.of<BabyProvider>(context, listen: false);
-    final currentBaby = babyProvider.currentBaby;
-    if (currentBaby == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('请先添加宝宝档案'),
-          backgroundColor: Colors.orange[400],
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        ),
-      );
-      return;
-    }
-    final record = DiaperRecord(
-      babyId: currentBaby.id,
-      changeTime: _selectedDateTime,
-      type: _selectedType,
-      status: _selectedStatus,
-      notes: _notesController.text.isEmpty ? null : _notesController.text,
-    );
-    Provider.of<RecordsProvider>(context, listen: false).addDiaperRecord(record);
-    Navigator.pop(context);
-  }
-
-  void _updateRecord(BuildContext context, DiaperRecord oldRecord) {
-    final record = oldRecord.copyWith(
-      changeTime: _selectedDateTime,
-      type: _selectedType,
-      status: _selectedStatus,
-      notes: _notesController.text.isEmpty ? null : _notesController.text,
-    );
-    Provider.of<RecordsProvider>(context, listen: false).updateDiaperRecord(record);
-    Navigator.pop(context);
-  }
-
-  void _deleteRecord(BuildContext context, String recordId) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.only(topLeft: Radius.circular(24), topRight: Radius.circular(24)),
-        ),
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(color: Colors.red[50], shape: BoxShape.circle),
-              child: Icon(Icons.warning_amber_rounded, color: Colors.red[400], size: 32),
-            ),
-            const SizedBox(height: 16),
-            const Text('确认删除', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Color(0xFF2D2D2D))),
-            const SizedBox(height: 8),
-            Text('确定要删除这条换尿布记录吗？', style: TextStyle(fontSize: 14, color: Colors.grey[600])),
-            const SizedBox(height: 24),
-            Row(
-              children: [
-                Expanded(child: _buildDialogButton('取消', false, () => Navigator.pop(context))),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () {
-                      Provider.of<RecordsProvider>(context, listen: false).deleteDiaperRecord(recordId);
-                      Navigator.pop(context);
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      decoration: BoxDecoration(
-                        color: Colors.red[400],
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Center(child: Text('删除', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white))),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-          ],
-        ),
-      ),
-    );
   }
 }

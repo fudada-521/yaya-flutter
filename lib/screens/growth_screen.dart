@@ -4,6 +4,7 @@ import '../providers/records_provider.dart';
 import '../providers/baby_provider.dart';
 import '../models/growth_record.dart';
 import 'package:intl/intl.dart';
+import 'record_bottom_sheet_helper.dart';
 
 class GrowthScreen extends StatefulWidget {
   const GrowthScreen({super.key});
@@ -13,13 +14,6 @@ class GrowthScreen extends StatefulWidget {
 }
 
 class _GrowthScreenState extends State<GrowthScreen> {
-  final _heightController = TextEditingController();
-  final _weightController = TextEditingController();
-  final _headCircumferenceController = TextEditingController();
-  final _notesController = TextEditingController();
-
-  DateTime _selectedDate = DateTime.now();
-
   @override
   void initState() {
     super.initState();
@@ -30,10 +24,6 @@ class _GrowthScreenState extends State<GrowthScreen> {
 
   @override
   void dispose() {
-    _heightController.dispose();
-    _weightController.dispose();
-    _headCircumferenceController.dispose();
-    _notesController.dispose();
     super.dispose();
   }
 
@@ -122,7 +112,7 @@ class _GrowthScreenState extends State<GrowthScreen> {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          onTap: () => _showAddRecordDialog(context),
+          onTap: () => RecordBottomSheetHelper.showAddGrowthRecord(context),
           child: const Padding(
             padding: EdgeInsets.all(16),
             child: Icon(Icons.add, color: Colors.white, size: 28),
@@ -283,9 +273,9 @@ class _GrowthScreenState extends State<GrowthScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _buildQuickButton('量身高', Icons.straighten, const Color(0xFF64B5F6), () => _showQuickHeightDialog(context, babyId)),
-              _buildQuickButton('称体重', Icons.scale, const Color(0xFFBA68C8), () => _showQuickWeightDialog(context, babyId)),
-              _buildQuickButton('量头围', Icons.circle_outlined, const Color(0xFFFF8A65), () => _showQuickHeadCircumferenceDialog(context, babyId)),
+              _buildQuickButton('量身高', Icons.straighten, const Color(0xFF64B5F6), () => RecordBottomSheetHelper.showQuickHeightRecord(context)),
+              _buildQuickButton('称体重', Icons.scale, const Color(0xFFBA68C8), () => RecordBottomSheetHelper.showQuickWeightRecord(context)),
+              _buildQuickButton('量头围', Icons.circle_outlined, const Color(0xFFFF8A65), () => RecordBottomSheetHelper.showQuickHeadCircumferenceRecord(context)),
             ],
           ),
         ],
@@ -394,7 +384,7 @@ class _GrowthScreenState extends State<GrowthScreen> {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          onTap: () => _showEditRecordDialog(context, record),
+          onTap: () => RecordBottomSheetHelper.showEditGrowthRecord(context, record),
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -439,9 +429,14 @@ class _GrowthScreenState extends State<GrowthScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       onSelected: (value) {
                         if (value == 'edit') {
-                          _showEditRecordDialog(context, record);
+                          RecordBottomSheetHelper.showEditGrowthRecord(context, record);
                         } else if (value == 'delete') {
-                          _deleteRecord(context, record.id);
+                          RecordBottomSheetHelper.showDeleteConfirm(
+                            context,
+                            title: '确认删除',
+                            message: '确定要删除这条成长记录吗？',
+                            onConfirm: () => Provider.of<RecordsProvider>(context, listen: false).deleteGrowthRecord(record.id),
+                          );
                         }
                       },
                       itemBuilder: (context) => [
@@ -543,539 +538,6 @@ class _GrowthScreenState extends State<GrowthScreen> {
           ),
         ),
       ],
-    );
-  }
-
-  void _showQuickHeightDialog(BuildContext context, String babyId) {
-    _heightController.clear();
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => _buildQuickInputDialog(
-        context,
-        title: '记录身高',
-        hint: '输入身高 (cm)',
-        controller: _heightController,
-        onSave: () {
-          final height = double.tryParse(_heightController.text);
-          if (height != null) {
-            _saveGrowthRecord(context, babyId, height: height);
-            _heightController.clear();
-          }
-          Navigator.pop(context);
-        },
-      ),
-    );
-  }
-
-  void _showQuickWeightDialog(BuildContext context, String babyId) {
-    _weightController.clear();
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => _buildQuickInputDialog(
-        context,
-        title: '记录体重',
-        hint: '输入体重 (kg)',
-        controller: _weightController,
-        onSave: () {
-          final weight = double.tryParse(_weightController.text);
-          if (weight != null) {
-            _saveGrowthRecord(context, babyId, weight: weight);
-            _weightController.clear();
-          }
-          Navigator.pop(context);
-        },
-      ),
-    );
-  }
-
-  void _showQuickHeadCircumferenceDialog(BuildContext context, String babyId) {
-    _headCircumferenceController.clear();
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => _buildQuickInputDialog(
-        context,
-        title: '记录头围',
-        hint: '输入头围 (cm)',
-        controller: _headCircumferenceController,
-        onSave: () {
-          final headCircumference = double.tryParse(_headCircumferenceController.text);
-          if (headCircumference != null) {
-            _saveGrowthRecord(context, babyId, headCircumference: headCircumference);
-            _headCircumferenceController.clear();
-          }
-          Navigator.pop(context);
-        },
-      ),
-    );
-  }
-
-  Widget _buildQuickInputDialog(
-    BuildContext context, {
-    required String title,
-    required String hint,
-    required TextEditingController controller,
-    required VoidCallback onSave,
-  }) {
-    return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.only(topLeft: Radius.circular(24), topRight: Radius.circular(24)),
-      ),
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Center(
-            child: Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF2D2D2D),
-            ),
-          ),
-          const SizedBox(height: 20),
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.grey[50],
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey[200]!),
-            ),
-            child: TextField(
-              controller: controller,
-              keyboardType: TextInputType.number,
-              style: const TextStyle(fontSize: 18, color: Color(0xFF2D2D2D)),
-              decoration: InputDecoration(
-                hintText: hint,
-                hintStyle: TextStyle(color: Colors.grey[400]),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                border: InputBorder.none,
-              ),
-            ),
-          ),
-          const SizedBox(height: 24),
-          Row(
-            children: [
-              Expanded(
-                child: GestureDetector(
-                  onTap: () => Navigator.pop(context),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[100],
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Center(
-                      child: Text('取消', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.grey[600])),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: GestureDetector(
-                  onTap: onSave,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFBA68C8),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Center(
-                      child: Text('保存', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white)),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-        ],
-      ),
-    );
-  }
-
-  void _saveGrowthRecord(BuildContext context, String babyId, {double? height, double? weight, double? headCircumference}) {
-    final record = GrowthRecord(
-      babyId: babyId,
-      recordDate: DateTime.now(),
-      height: height,
-      weight: weight,
-      headCircumference: headCircumference,
-    );
-    Provider.of<RecordsProvider>(context, listen: false).addGrowthRecord(record);
-  }
-
-  void _showAddRecordDialog(BuildContext context) {
-    _selectedDate = DateTime.now();
-    _heightController.clear();
-    _weightController.clear();
-    _headCircumferenceController.clear();
-    _notesController.clear();
-
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) => Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.only(topLeft: Radius.circular(24), topRight: Radius.circular(24)),
-          ),
-          padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Container(
-                      width: 40,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[300],
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  const Text(
-                    '添加成长记录',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF2D2D2D),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  _buildDatePicker(context, setState),
-                  const SizedBox(height: 16),
-                  _buildMinimalistTextField(controller: _heightController, label: '身高', hint: 'cm', suffix: 'cm'),
-                  const SizedBox(height: 16),
-                  _buildMinimalistTextField(controller: _weightController, label: '体重', hint: 'kg', suffix: 'kg'),
-                  const SizedBox(height: 16),
-                  _buildMinimalistTextField(controller: _headCircumferenceController, label: '头围', hint: 'cm', suffix: 'cm'),
-                  const SizedBox(height: 16),
-                  _buildMinimalistTextField(controller: _notesController, label: '备注', hint: '选填', maxLines: 2),
-                  const SizedBox(height: 24),
-                  Row(
-                    children: [
-                      Expanded(child: _buildDialogButton('取消', false, () => Navigator.pop(context))),
-                      const SizedBox(width: 12),
-                      Expanded(child: _buildDialogButton('保存', true, () => _saveRecord(context))),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showEditRecordDialog(BuildContext context, GrowthRecord record) {
-    _selectedDate = record.recordDate;
-    _heightController.text = record.height?.toString() ?? '';
-    _weightController.text = record.weight?.toString() ?? '';
-    _headCircumferenceController.text = record.headCircumference?.toString() ?? '';
-    _notesController.text = record.notes ?? '';
-
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) => Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.only(topLeft: Radius.circular(24), topRight: Radius.circular(24)),
-          ),
-          padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Container(
-                      width: 40,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[300],
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  const Text(
-                    '编辑成长记录',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF2D2D2D),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  _buildDatePicker(context, setState),
-                  const SizedBox(height: 16),
-                  _buildMinimalistTextField(controller: _heightController, label: '身高', hint: 'cm', suffix: 'cm'),
-                  const SizedBox(height: 16),
-                  _buildMinimalistTextField(controller: _weightController, label: '体重', hint: 'kg', suffix: 'kg'),
-                  const SizedBox(height: 16),
-                  _buildMinimalistTextField(controller: _headCircumferenceController, label: '头围', hint: 'cm', suffix: 'cm'),
-                  const SizedBox(height: 16),
-                  _buildMinimalistTextField(controller: _notesController, label: '备注', hint: '选填', maxLines: 2),
-                  const SizedBox(height: 24),
-                  Row(
-                    children: [
-                      Expanded(child: _buildDialogButton('取消', false, () => Navigator.pop(context))),
-                      const SizedBox(width: 12),
-                      Expanded(child: _buildDialogButton('保存', true, () => _updateRecord(context, record))),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDatePicker(BuildContext context, StateSetter setState) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('记录日期', style: TextStyle(fontSize: 13, color: Colors.grey[600], fontWeight: FontWeight.w500)),
-        const SizedBox(height: 8),
-        GestureDetector(
-          onTap: () async {
-            final date = await showDatePicker(
-              context: context,
-              initialDate: _selectedDate,
-              firstDate: DateTime.now().subtract(const Duration(days: 365)),
-              lastDate: DateTime.now(),
-              builder: (context, child) {
-                return Theme(
-                  data: Theme.of(context).copyWith(
-                    colorScheme: ColorScheme.light(
-                      primary: const Color(0xFFBA68C8),
-                      onPrimary: Colors.white,
-                      surface: Colors.white,
-                      onSurface: const Color(0xFF2D2D2D),
-                    ),
-                  ),
-                  child: child!,
-                );
-              },
-            );
-            if (date != null) {
-              setState(() => _selectedDate = date);
-            }
-          },
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            decoration: BoxDecoration(
-              color: Colors.grey[50],
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey[200]!),
-            ),
-            child: Row(
-              children: [
-                Icon(Icons.calendar_today_outlined, size: 18, color: Colors.grey[400]),
-                const SizedBox(width: 12),
-                Text(
-                  DateFormat('yyyy年MM月dd日').format(_selectedDate),
-                  style: const TextStyle(fontSize: 15, color: Color(0xFF2D2D2D)),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMinimalistTextField({
-    required TextEditingController controller,
-    required String label,
-    required String hint,
-    String? suffix,
-    int maxLines = 1,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: TextStyle(fontSize: 13, color: Colors.grey[600], fontWeight: FontWeight.w500)),
-        const SizedBox(height: 8),
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.grey[50],
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey[200]!),
-          ),
-          child: TextField(
-            controller: controller,
-            maxLines: maxLines,
-            keyboardType: TextInputType.number,
-            style: const TextStyle(fontSize: 15, color: Color(0xFF2D2D2D)),
-            decoration: InputDecoration(
-              hintText: hint,
-              hintStyle: TextStyle(color: Colors.grey[400], fontSize: 15),
-              suffixText: suffix,
-              suffixStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              border: InputBorder.none,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildDialogButton(String text, bool isPrimary, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        decoration: BoxDecoration(
-          color: isPrimary ? const Color(0xFFBA68C8) : Colors.grey[100],
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Center(
-          child: Text(
-            text,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: isPrimary ? Colors.white : Colors.grey[600],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _saveRecord(BuildContext context) {
-    final babyProvider = Provider.of<BabyProvider>(context, listen: false);
-    final currentBaby = babyProvider.currentBaby;
-    if (currentBaby == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('请先添加宝宝档案'),
-          backgroundColor: Colors.orange[400],
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        ),
-      );
-      return;
-    }
-    final record = GrowthRecord(
-      babyId: currentBaby.id,
-      recordDate: _selectedDate,
-      height: double.tryParse(_heightController.text),
-      weight: double.tryParse(_weightController.text),
-      headCircumference: double.tryParse(_headCircumferenceController.text),
-      notes: _notesController.text.isEmpty ? null : _notesController.text,
-    );
-    Provider.of<RecordsProvider>(context, listen: false).addGrowthRecord(record);
-    Navigator.pop(context);
-  }
-
-  void _updateRecord(BuildContext context, GrowthRecord oldRecord) {
-    final record = oldRecord.copyWith(
-      recordDate: _selectedDate,
-      height: double.tryParse(_heightController.text),
-      weight: double.tryParse(_weightController.text),
-      headCircumference: double.tryParse(_headCircumferenceController.text),
-      notes: _notesController.text.isEmpty ? null : _notesController.text,
-    );
-    Provider.of<RecordsProvider>(context, listen: false).updateGrowthRecord(record);
-    Navigator.pop(context);
-  }
-
-  void _deleteRecord(BuildContext context, String recordId) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.only(topLeft: Radius.circular(24), topRight: Radius.circular(24)),
-        ),
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(color: Colors.red[50], shape: BoxShape.circle),
-              child: Icon(Icons.warning_amber_rounded, color: Colors.red[400], size: 32),
-            ),
-            const SizedBox(height: 16),
-            const Text('确认删除', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Color(0xFF2D2D2D))),
-            const SizedBox(height: 8),
-            Text('确定要删除这条成长记录吗？', style: TextStyle(fontSize: 14, color: Colors.grey[600])),
-            const SizedBox(height: 24),
-            Row(
-              children: [
-                Expanded(child: _buildDialogButton('取消', false, () => Navigator.pop(context))),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () {
-                      Provider.of<RecordsProvider>(context, listen: false).deleteGrowthRecord(recordId);
-                      Navigator.pop(context);
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      decoration: BoxDecoration(
-                        color: Colors.red[400],
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Center(child: Text('删除', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white))),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-          ],
-        ),
-      ),
     );
   }
 }

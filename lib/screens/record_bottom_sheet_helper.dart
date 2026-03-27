@@ -1027,4 +1027,787 @@ class RecordBottomSheetHelper {
       ),
     );
   }
+
+  // ==================== 通用删除确认 ====================
+
+  static void showDeleteConfirm(
+    BuildContext context, {
+    required String title,
+    required String message,
+    required VoidCallback onConfirm,
+  }) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(topLeft: Radius.circular(24), topRight: Radius.circular(24)),
+        ),
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(color: Colors.red[50], shape: BoxShape.circle),
+              child: Icon(Icons.warning_amber_rounded, color: Colors.red[400], size: 32),
+            ),
+            const SizedBox(height: 16),
+            Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Color(0xFF2D2D2D))),
+            const SizedBox(height: 8),
+            Text(message, style: TextStyle(fontSize: 14, color: Colors.grey[600])),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(child: _buildButton('取消', false, () => Navigator.pop(context))),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      onConfirm();
+                      Navigator.pop(context);
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      decoration: BoxDecoration(
+                        color: Colors.red[400],
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Center(child: Text('删除', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white))),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ==================== 喂养记录编辑 ====================
+
+  static void showEditFeedingRecord(BuildContext context, FeedingRecord record) {
+    final amountController = TextEditingController(text: record.amount?.toString() ?? '');
+    final notesController = TextEditingController(text: record.notes ?? '');
+    DateTime selectedDateTime = record.feedTime;
+    String selectedType = record.type;
+    String? selectedMethod = record.method;
+    int? selectedDuration = record.duration;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(topLeft: Radius.circular(24), topRight: Radius.circular(24)),
+          ),
+          padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    '编辑喂养记录',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF2D2D2D),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  _buildDateTimePicker(context, selectedDateTime, (dt) => setState(() => selectedDateTime = dt)),
+                  const SizedBox(height: 20),
+                  _buildFeedingTypeSelector(selectedType, (type) => setState(() => selectedType = type)),
+                  if (selectedType == 'breast') ...[
+                    const SizedBox(height: 16),
+                    _buildMethodSelector(selectedMethod, (m) => setState(() => selectedMethod = m)),
+                    const SizedBox(height: 16),
+                    _buildDurationSelector(selectedDuration, (d) => setState(() => selectedDuration = d)),
+                  ],
+                  if (selectedType != 'breast') ...[
+                    const SizedBox(height: 16),
+                    _buildTextField(amountController, '奶量', 'ml', suffix: 'ml'),
+                  ],
+                  const SizedBox(height: 16),
+                  _buildTextField(notesController, '备注', '选填', maxLines: 2),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Expanded(child: _buildButton('取消', false, () => Navigator.pop(context))),
+                      const SizedBox(width: 12),
+                      Expanded(child: _buildButton('保存', true, () {
+                        _updateFeedingRecord(context, record.id, selectedDateTime, selectedType, selectedMethod, selectedDuration, amountController, notesController);
+                      })),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  static void _updateFeedingRecord(
+    BuildContext context,
+    String recordId,
+    DateTime selectedDateTime,
+    String selectedType,
+    String? selectedMethod,
+    int? selectedDuration,
+    TextEditingController amountController,
+    TextEditingController notesController,
+  ) {
+    final babyProvider = Provider.of<BabyProvider>(context, listen: false);
+    final currentBaby = babyProvider.currentBaby;
+    if (currentBaby == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('请先添加宝宝档案'),
+          backgroundColor: Colors.orange[400],
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      );
+      return;
+    }
+    final record = FeedingRecord(
+      id: recordId,
+      babyId: currentBaby.id,
+      feedTime: selectedDateTime,
+      amount: double.tryParse(amountController.text),
+      type: selectedType,
+      method: selectedMethod,
+      duration: selectedType == 'breast' ? selectedDuration : null,
+      notes: notesController.text.isEmpty ? null : notesController.text,
+    );
+    Provider.of<RecordsProvider>(context, listen: false).updateFeedingRecord(record);
+    Navigator.pop(context);
+  }
+
+  // ==================== 睡眠记录编辑 ====================
+
+  static void showEditSleepRecord(BuildContext context, SleepRecord record) {
+    DateTime startTime = record.startTime;
+    DateTime? endTime = record.endTime;
+    int selectedQuality = record.quality ?? 3;
+    final notesController = TextEditingController(text: record.notes ?? '');
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(topLeft: Radius.circular(24), topRight: Radius.circular(24)),
+          ),
+          padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    '编辑睡眠记录',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF2D2D2D),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  _buildSleepDateTimePickers(context, startTime, endTime, (st, et) => setState(() {
+                    startTime = st;
+                    endTime = et;
+                  })),
+                  const SizedBox(height: 16),
+                  _buildEndSwitchForEdit(context, startTime, endTime, (et) => setState(() => endTime = et)),
+                  const SizedBox(height: 16),
+                  _buildSleepQualitySelector(selectedQuality, (q) => setState(() => selectedQuality = q)),
+                  const SizedBox(height: 16),
+                  _buildTextField(notesController, '备注', '选填', maxLines: 2),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Expanded(child: _buildButton('取消', false, () => Navigator.pop(context))),
+                      const SizedBox(width: 12),
+                      Expanded(child: _buildButton('保存', true, () {
+                        _updateSleepRecord(context, record.id, startTime, endTime, selectedQuality, notesController);
+                      })),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  static Widget _buildEndSwitchForEdit(BuildContext context, DateTime startTime, DateTime? endTime, ValueChanged<DateTime?> onChanged) {
+    return GestureDetector(
+      onTap: () => onChanged(endTime == null ? DateTime.now() : null),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: endTime != null ? Colors.green[50] : Colors.grey[50],
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: endTime != null ? Colors.green[300]! : Colors.grey[200]!),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              endTime != null ? Icons.check_circle : Icons.circle_outlined,
+              size: 20,
+              color: endTime != null ? Colors.green[600] : Colors.grey[400],
+            ),
+            const SizedBox(width: 12),
+            Text(
+              '睡眠已结束',
+              style: TextStyle(
+                fontSize: 15,
+                color: endTime != null ? Colors.green[700] : Colors.grey[600],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  static void _updateSleepRecord(
+    BuildContext context,
+    String recordId,
+    DateTime startTime,
+    DateTime? endTime,
+    int quality,
+    TextEditingController notesController,
+  ) {
+    final babyProvider = Provider.of<BabyProvider>(context, listen: false);
+    final currentBaby = babyProvider.currentBaby;
+    if (currentBaby == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('请先添加宝宝档案'),
+          backgroundColor: Colors.orange[400],
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      );
+      return;
+    }
+    final record = SleepRecord(
+      id: recordId,
+      babyId: currentBaby.id,
+      startTime: startTime,
+      endTime: endTime,
+      quality: quality,
+      notes: notesController.text.isEmpty ? null : notesController.text,
+    );
+    Provider.of<RecordsProvider>(context, listen: false).updateSleepRecord(record);
+    Navigator.pop(context);
+  }
+
+  // ==================== 尿布记录编辑 ====================
+
+  static void showEditDiaperRecord(BuildContext context, DiaperRecord record) {
+    DateTime selectedDateTime = record.changeTime;
+    String selectedType = record.type;
+    String selectedStatus = record.status;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(topLeft: Radius.circular(24), topRight: Radius.circular(24)),
+          ),
+          padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    '编辑换尿布记录',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF2D2D2D),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  _buildDiaperDateTimePicker(context, selectedDateTime, (dt) => setState(() => selectedDateTime = dt)),
+                  const SizedBox(height: 20),
+                  _buildDiaperTypeSelector(selectedType, (type) => setState(() => selectedType = type)),
+                  const SizedBox(height: 16),
+                  _buildDiaperStatusSelector(selectedStatus, (status) => setState(() => selectedStatus = status)),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Expanded(child: _buildButton('取消', false, () => Navigator.pop(context))),
+                      const SizedBox(width: 12),
+                      Expanded(child: _buildButton('保存', true, () {
+                        _updateDiaperRecord(context, record.id, selectedDateTime, selectedType, selectedStatus);
+                      })),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  static void _updateDiaperRecord(
+    BuildContext context,
+    String recordId,
+    DateTime selectedDateTime,
+    String selectedType,
+    String selectedStatus,
+  ) {
+    final babyProvider = Provider.of<BabyProvider>(context, listen: false);
+    final currentBaby = babyProvider.currentBaby;
+    if (currentBaby == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('请先添加宝宝档案'),
+          backgroundColor: Colors.orange[400],
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      );
+      return;
+    }
+    final record = DiaperRecord(
+      id: recordId,
+      babyId: currentBaby.id,
+      changeTime: selectedDateTime,
+      type: selectedType,
+      status: selectedStatus,
+    );
+    Provider.of<RecordsProvider>(context, listen: false).updateDiaperRecord(record);
+    Navigator.pop(context);
+  }
+
+  // ==================== 成长记录编辑 ====================
+
+  static void showEditGrowthRecord(BuildContext context, GrowthRecord record) {
+    DateTime selectedDate = record.recordDate;
+    final weightController = TextEditingController(text: record.weight?.toString() ?? '');
+    final heightController = TextEditingController(text: record.height?.toString() ?? '');
+    final headCircumferenceController = TextEditingController(text: record.headCircumference?.toString() ?? '');
+    final notesController = TextEditingController(text: record.notes ?? '');
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(topLeft: Radius.circular(24), topRight: Radius.circular(24)),
+          ),
+          padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    '编辑成长记录',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF2D2D2D),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  _buildGrowthDatePicker(context, selectedDate, (dt) => setState(() => selectedDate = dt)),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(child: _buildTextField(weightController, '体重', 'kg', suffix: 'kg')),
+                      const SizedBox(width: 12),
+                      Expanded(child: _buildTextField(heightController, '身高', 'cm', suffix: 'cm')),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  _buildTextField(headCircumferenceController, '头围', 'cm', suffix: 'cm'),
+                  const SizedBox(height: 16),
+                  _buildTextField(notesController, '备注', '选填', maxLines: 2),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Expanded(child: _buildButton('取消', false, () => Navigator.pop(context))),
+                      const SizedBox(width: 12),
+                      Expanded(child: _buildButton('保存', true, () {
+                        _updateGrowthRecord(
+                          context,
+                          record.id,
+                          selectedDate,
+                          weightController,
+                          heightController,
+                          headCircumferenceController,
+                          notesController,
+                        );
+                      })),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  static void _updateGrowthRecord(
+    BuildContext context,
+    String recordId,
+    DateTime selectedDate,
+    TextEditingController weightController,
+    TextEditingController heightController,
+    TextEditingController headCircumferenceController,
+    TextEditingController notesController,
+  ) {
+    final babyProvider = Provider.of<BabyProvider>(context, listen: false);
+    final currentBaby = babyProvider.currentBaby;
+    if (currentBaby == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('请先添加宝宝档案'),
+          backgroundColor: Colors.orange[400],
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      );
+      return;
+    }
+    final record = GrowthRecord(
+      id: recordId,
+      babyId: currentBaby.id,
+      recordDate: selectedDate,
+      weight: double.tryParse(weightController.text),
+      height: double.tryParse(heightController.text),
+      headCircumference: double.tryParse(headCircumferenceController.text),
+      notes: notesController.text.isEmpty ? null : notesController.text,
+    );
+    Provider.of<RecordsProvider>(context, listen: false).updateGrowthRecord(record);
+    Navigator.pop(context);
+  }
+
+  // ==================== 快速成长记录 ====================
+
+  static void showQuickHeightRecord(BuildContext context) {
+    final heightController = TextEditingController();
+    DateTime selectedDate = DateTime.now();
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(topLeft: Radius.circular(24), topRight: Radius.circular(24)),
+          ),
+          padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    '快速记录身高',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF2D2D2D),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  _buildGrowthDatePicker(context, selectedDate, (dt) => setState(() => selectedDate = dt)),
+                  const SizedBox(height: 16),
+                  _buildTextField(heightController, '身高', 'cm', suffix: 'cm'),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Expanded(child: _buildButton('取消', false, () => Navigator.pop(context))),
+                      const SizedBox(width: 12),
+                      Expanded(child: _buildButton('保存', true, () {
+                        _saveQuickGrowthRecord(context, selectedDate, null, double.tryParse(heightController.text), null);
+                      })),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  static void showQuickWeightRecord(BuildContext context) {
+    final weightController = TextEditingController();
+    DateTime selectedDate = DateTime.now();
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(topLeft: Radius.circular(24), topRight: Radius.circular(24)),
+          ),
+          padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    '快速记录体重',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF2D2D2D),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  _buildGrowthDatePicker(context, selectedDate, (dt) => setState(() => selectedDate = dt)),
+                  const SizedBox(height: 16),
+                  _buildTextField(weightController, '体重', 'kg', suffix: 'kg'),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Expanded(child: _buildButton('取消', false, () => Navigator.pop(context))),
+                      const SizedBox(width: 12),
+                      Expanded(child: _buildButton('保存', true, () {
+                        _saveQuickGrowthRecord(context, selectedDate, double.tryParse(weightController.text), null, null);
+                      })),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  static void showQuickHeadCircumferenceRecord(BuildContext context) {
+    final headController = TextEditingController();
+    DateTime selectedDate = DateTime.now();
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(topLeft: Radius.circular(24), topRight: Radius.circular(24)),
+          ),
+          padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    '快速记录头围',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF2D2D2D),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  _buildGrowthDatePicker(context, selectedDate, (dt) => setState(() => selectedDate = dt)),
+                  const SizedBox(height: 16),
+                  _buildTextField(headController, '头围', 'cm', suffix: 'cm'),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Expanded(child: _buildButton('取消', false, () => Navigator.pop(context))),
+                      const SizedBox(width: 12),
+                      Expanded(child: _buildButton('保存', true, () {
+                        _saveQuickGrowthRecord(context, selectedDate, null, null, double.tryParse(headController.text));
+                      })),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  static void _saveQuickGrowthRecord(
+    BuildContext context,
+    DateTime selectedDate,
+    double? weight,
+    double? height,
+    double? headCircumference,
+  ) {
+    final babyProvider = Provider.of<BabyProvider>(context, listen: false);
+    final currentBaby = babyProvider.currentBaby;
+    if (currentBaby == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('请先添加宝宝档案'),
+          backgroundColor: Colors.orange[400],
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      );
+      return;
+    }
+    final record = GrowthRecord(
+      babyId: currentBaby.id,
+      recordDate: selectedDate,
+      weight: weight,
+      height: height,
+      headCircumference: headCircumference,
+    );
+    Provider.of<RecordsProvider>(context, listen: false).addGrowthRecord(record);
+    Navigator.pop(context);
+  }
 }
