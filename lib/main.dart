@@ -24,7 +24,7 @@ class YayaDiaryApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => RecordsProvider()),
       ],
       child: MaterialApp(
-        title: '丫丫日记 - 婴儿生活记录',
+        title: '芽芽日记 - 婴儿生活记录',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           primarySwatch: Colors.pink,

@@ -76,17 +76,25 @@ class _BabyProfileScreenState extends State<BabyProfileScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.child_care,
-              size: 80,
-              color: Colors.grey[400],
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.orange[50],
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.child_care,
+                size: 64,
+                color: Colors.orange[300],
+              ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
             Text(
               '还没有添加宝宝哦~',
               style: TextStyle(
                 fontSize: 18,
-                color: Colors.grey[600],
+                fontWeight: FontWeight.w600,
+                color: Colors.grey[700],
               ),
             ),
             const SizedBox(height: 8),
@@ -97,14 +105,11 @@ class _BabyProfileScreenState extends State<BabyProfileScreen> {
                 color: Colors.grey[500],
               ),
             ),
-            const SizedBox(height: 24),
-            ElevatedButton.icon(
+            const SizedBox(height: 32),
+            _buildMinimalistButton(
+              text: '添加宝宝',
               onPressed: () => _showAddBabyDialog(context),
-              icon: const Icon(Icons.add),
-              label: const Text('添加宝宝'),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              ),
+              isPrimary: true,
             ),
           ],
         ),
@@ -113,20 +118,43 @@ class _BabyProfileScreenState extends State<BabyProfileScreen> {
   }
 
   Widget _buildCurrentBabyCard(BuildContext context, Baby baby, BabyProvider babyProvider) {
-    return Card(
+    final babyColor = baby.gender == 'male' ? const Color(0xFF64B5F6) : const Color(0xFFF48FB1);
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withAlpha(20),
+            blurRadius: 20,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                CircleAvatar(
-                  radius: 40,
-                  backgroundColor: baby.gender == 'male' ? Colors.blue : Colors.pink,
-                  child: Text(
-                    baby.name[0],
-                    style: const TextStyle(fontSize: 32, color: Colors.white),
+                Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: babyColor.withAlpha(50), width: 3),
+                  ),
+                  child: CircleAvatar(
+                    radius: 36,
+                    backgroundColor: babyColor.withAlpha(25),
+                    child: Text(
+                      baby.name[0],
+                      style: TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        color: babyColor,
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -137,34 +165,55 @@ class _BabyProfileScreenState extends State<BabyProfileScreen> {
                       Text(
                         baby.name,
                         style: const TextStyle(
-                          fontSize: 24,
+                          fontSize: 22,
                           fontWeight: FontWeight.bold,
+                          color: Color(0xFF2D2D2D),
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 6),
                       Row(
                         children: [
-                          Icon(
-                            baby.gender == 'male' ? Icons.male : Icons.female,
-                            size: 16,
-                            color: baby.gender == 'male' ? Colors.blue : Colors.pink,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            baby.gender == 'male' ? '男宝宝' : '女宝宝',
-                            style: TextStyle(color: Colors.grey[600]),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: babyColor.withAlpha(25),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  baby.gender == 'male' ? Icons.male : Icons.female,
+                                  size: 14,
+                                  color: babyColor,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  baby.gender == 'male' ? '男宝宝' : '女宝宝',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: babyColor,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 6),
                       Text(
                         '今天是你出生的第${baby.ageInDays}天',
-                        style: TextStyle(color: Colors.grey[600]),
+                        style: TextStyle(
+                          color: Colors.grey[500],
+                          fontSize: 13,
+                        ),
                       ),
                     ],
                   ),
                 ),
                 PopupMenuButton<String>(
+                  icon: Icon(Icons.more_horiz, color: Colors.grey[400]),
                   onSelected: (value) {
                     if (value == 'edit') {
                       _showEditBabyDialog(context, baby);
@@ -173,24 +222,71 @@ class _BabyProfileScreenState extends State<BabyProfileScreen> {
                     }
                   },
                   itemBuilder: (context) => [
-                    const PopupMenuItem(value: 'edit', child: Text('编辑')),
-                    const PopupMenuItem(value: 'delete', child: Text('删除')),
+                    PopupMenuItem(
+                      value: 'edit',
+                      child: Row(
+                        children: [
+                          Icon(Icons.edit_outlined, size: 18, color: Colors.grey[600]),
+                          const SizedBox(width: 8),
+                          const Text('编辑'),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: 'delete',
+                      child: Row(
+                        children: [
+                          Icon(Icons.delete_outline, size: 18, color: Colors.red[400]),
+                          const SizedBox(width: 8),
+                          Text('删除', style: TextStyle(color: Colors.red[400])),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ],
             ),
-            const Divider(height: 32),
-            _buildInfoRow('出生日期', DateFormat('yyyy年MM月dd日').format(baby.birthDate)),
-            if (baby.birthWeight != null)
-              _buildInfoRow('出生体重', '${baby.birthWeight}kg'),
-            if (baby.birthHeight != null)
-              _buildInfoRow('出生身高', '${baby.birthHeight}cm'),
-            _buildInfoRow('当前年龄', baby.ageString),
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.grey[50],
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                children: [
+                  _buildInfoRow('出生日期', DateFormat('yyyy年MM月dd日').format(baby.birthDate)),
+                  if (baby.birthWeight != null)
+                    _buildInfoRow('出生体重', '${baby.birthWeight}kg'),
+                  if (baby.birthHeight != null)
+                    _buildInfoRow('出生身高', '${baby.birthHeight}cm'),
+                  _buildInfoRow('当前年龄', baby.ageString),
+                ],
+              ),
+            ),
             if (baby.notes != null && baby.notes!.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Text(
-                '备注: ${baby.notes}',
-                style: TextStyle(color: Colors.grey[600], fontSize: 14),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.orange[50],
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.note_outlined, size: 16, color: Colors.orange[400]),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        baby.notes!,
+                        style: TextStyle(
+                          color: Colors.orange[700],
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ],
@@ -258,13 +354,10 @@ class _BabyProfileScreenState extends State<BabyProfileScreen> {
 
   Widget _buildAddBabyButton(BuildContext context) {
     return Center(
-      child: ElevatedButton.icon(
+      child: _buildMinimalistButton(
+        text: '+ 添加宝宝',
         onPressed: () => _showAddBabyDialog(context),
-        icon: const Icon(Icons.add),
-        label: const Text('添加宝宝'),
-        style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-        ),
+        isPrimary: true,
       ),
     );
   }
@@ -280,121 +373,452 @@ class _BabyProfileScreenState extends State<BabyProfileScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       builder: (context) => StatefulBuilder(
-        builder: (context, setState) => Padding(
+        builder: (context, setState) => Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(24),
+              topRight: Radius.circular(24),
+            ),
+          ),
           padding: EdgeInsets.only(
             bottom: MediaQuery.of(context).viewInsets.bottom,
-            left: 16,
-            right: 16,
-            top: 16,
           ),
           child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 顶部拖动条
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  // 标题
+                  const Text(
+                    '添加宝宝',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF2D2D2D),
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '记录宝宝的基本信息',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[500],
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+
+                  // 宝宝姓名
+                  _buildMinimalistTextField(
+                    controller: nameController,
+                    label: '宝宝姓名',
+                    hint: '请输入宝宝姓名',
+                    isRequired: true,
+                  ),
+                  const SizedBox(height: 24),
+
+                  // 出生日期
+                  _buildMinimalistDatePicker(
+                    context: context,
+                    label: '出生日期',
+                    selectedDate: selectedDate,
+                    onDateChanged: (date) => setState(() => selectedDate = date),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // 性别选择
+                  _buildMinimalistGenderSelector(
+                    selectedGender: selectedGender,
+                    onGenderChanged: (gender) => setState(() => selectedGender = gender),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // 出生体重和身高
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildMinimalistTextField(
+                          controller: birthWeightController,
+                          label: '出生体重',
+                          hint: 'kg',
+                          suffix: 'kg',
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: _buildMinimalistTextField(
+                          controller: birthHeightController,
+                          label: '出生身高',
+                          hint: 'cm',
+                          suffix: 'cm',
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  // 备注
+                  _buildMinimalistTextField(
+                    controller: notesController,
+                    label: '备注',
+                    hint: '选填，可添加备注信息',
+                    maxLines: 2,
+                  ),
+                  const SizedBox(height: 32),
+
+                  // 按钮组
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildMinimalistButton(
+                          text: '取消',
+                          onPressed: () => Navigator.pop(context),
+                          isPrimary: false,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: _buildMinimalistButton(
+                          text: '保存',
+                          onPressed: () {
+                            if (nameController.text.trim().isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: const Text('请输入宝宝姓名'),
+                                  backgroundColor: Colors.orange[400],
+                                  behavior: SnackBarBehavior.floating,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                ),
+                              );
+                              return;
+                            }
+                            _saveBaby(
+                              context,
+                              name: nameController.text.trim(),
+                              birthDate: selectedDate,
+                              gender: selectedGender,
+                              birthWeight: double.tryParse(birthWeightController.text),
+                              birthHeight: double.tryParse(birthHeightController.text),
+                              notes: notesController.text.trim().isEmpty ? null : notesController.text.trim(),
+                            );
+                            Navigator.pop(context);
+                          },
+                          isPrimary: true,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // 极简风格文本输入框
+  Widget _buildMinimalistTextField({
+    required TextEditingController controller,
+    required String label,
+    required String hint,
+    String? suffix,
+    bool isRequired = false,
+    int maxLines = 1,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.grey[600],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            if (isRequired)
+              Text(
+                ' *',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Colors.orange[400],
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.grey[50],
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.grey[200]!),
+          ),
+          child: TextField(
+            controller: controller,
+            maxLines: maxLines,
+            style: const TextStyle(
+              fontSize: 16,
+              color: Color(0xFF2D2D2D),
+            ),
+            decoration: InputDecoration(
+              hintText: hint,
+              hintStyle: TextStyle(
+                color: Colors.grey[400],
+                fontSize: 16,
+              ),
+              suffixText: suffix,
+              suffixStyle: TextStyle(
+                color: Colors.grey[400],
+                fontSize: 14,
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 14,
+              ),
+              border: InputBorder.none,
+              enabledBorder: InputBorder.none,
+              focusedBorder: InputBorder.none,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // 极简风格日期选择器
+  Widget _buildMinimalistDatePicker({
+    required BuildContext context,
+    required String label,
+    required DateTime selectedDate,
+    required ValueChanged<DateTime> onDateChanged,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.grey[600],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            Text(
+              ' *',
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.orange[400],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        GestureDetector(
+          onTap: () async {
+            final date = await showDatePicker(
+              context: context,
+              initialDate: selectedDate,
+              firstDate: DateTime.now().subtract(const Duration(days: 365 * 5)),
+              lastDate: DateTime.now(),
+              builder: (context, child) {
+                return Theme(
+                  data: Theme.of(context).copyWith(
+                    colorScheme: ColorScheme.light(
+                      primary: Colors.orange[400]!,
+                      onPrimary: Colors.white,
+                      surface: Colors.white,
+                      onSurface: const Color(0xFF2D2D2D),
+                    ),
+                  ),
+                  child: child!,
+                );
+              },
+            );
+            if (date != null) {
+              onDateChanged(date);
+            }
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: Colors.grey[50],
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey[200]!),
+            ),
+            child: Row(
               children: [
-                const Text(
-                  '添加宝宝',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                Icon(
+                  Icons.calendar_today_outlined,
+                  size: 18,
+                  color: Colors.grey[400],
                 ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: nameController,
-                  decoration: const InputDecoration(
-                    labelText: '宝宝姓名 *',
-                    hintText: '请输入宝宝姓名',
+                const SizedBox(width: 12),
+                Text(
+                  DateFormat('yyyy年MM月dd日').format(selectedDate),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: Color(0xFF2D2D2D),
                   ),
                 ),
-                const SizedBox(height: 16),
-                ListTile(
-                  title: const Text('出生日期 *'),
-                  subtitle: Text(DateFormat('yyyy年MM月dd日').format(selectedDate)),
-                  trailing: const Icon(Icons.calendar_today),
-                  onTap: () async {
-                    final date = await showDatePicker(
-                      context: context,
-                      initialDate: selectedDate,
-                      firstDate: DateTime.now().subtract(const Duration(days: 365 * 5)),
-                      lastDate: DateTime.now(),
-                    );
-                    if (date != null) {
-                      setState(() => selectedDate = date);
-                    }
-                  },
+                const Spacer(),
+                Icon(
+                  Icons.arrow_drop_down,
+                  color: Colors.grey[400],
                 ),
-                const Text('性别 *', style: TextStyle(fontSize: 16)),
-                RadioListTile<String>(
-                  title: const Text('男宝宝'),
-                  value: 'male',
-                  groupValue: selectedGender,
-                  onChanged: (value) => setState(() => selectedGender = value!),
-                ),
-                RadioListTile<String>(
-                  title: const Text('女宝宝'),
-                  value: 'female',
-                  groupValue: selectedGender,
-                  onChanged: (value) => setState(() => selectedGender = value!),
-                ),
-                TextField(
-                  controller: birthWeightController,
-                  decoration: const InputDecoration(
-                    labelText: '出生体重 (kg)',
-                    hintText: '可选',
-                  ),
-                  keyboardType: TextInputType.number,
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: birthHeightController,
-                  decoration: const InputDecoration(
-                    labelText: '出生身高 (cm)',
-                    hintText: '可选',
-                  ),
-                  keyboardType: TextInputType.number,
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: notesController,
-                  decoration: const InputDecoration(
-                    labelText: '备注',
-                    hintText: '可选',
-                  ),
-                  maxLines: 2,
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('取消'),
-                    ),
-                    const SizedBox(width: 8),
-                    ElevatedButton(
-                      onPressed: () {
-                        if (nameController.text.trim().isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('请输入宝宝姓名')),
-                          );
-                          return;
-                        }
-                        _saveBaby(
-                          context,
-                          name: nameController.text.trim(),
-                          birthDate: selectedDate,
-                          gender: selectedGender,
-                          birthWeight: double.tryParse(birthWeightController.text),
-                          birthHeight: double.tryParse(birthHeightController.text),
-                          notes: notesController.text.trim().isEmpty ? null : notesController.text.trim(),
-                        );
-                        Navigator.pop(context);
-                      },
-                      child: const Text('保存'),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
               ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // 极简风格性别选择器
+  Widget _buildMinimalistGenderSelector({
+    required String selectedGender,
+    required ValueChanged<String> onGenderChanged,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(
+              '性别',
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.grey[600],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            Text(
+              ' *',
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.orange[400],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: _buildGenderOption(
+                gender: 'male',
+                label: '男宝宝',
+                icon: Icons.male,
+                isSelected: selectedGender == 'male',
+                onTap: () => onGenderChanged('male'),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildGenderOption(
+                gender: 'female',
+                label: '女宝宝',
+                icon: Icons.female,
+                isSelected: selectedGender == 'female',
+                onTap: () => onGenderChanged('female'),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGenderOption({
+    required String gender,
+    required String label,
+    required IconData icon,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    final color = gender == 'male' ? const Color(0xFF64B5F6) : const Color(0xFFF48FB1);
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          color: isSelected ? color.withAlpha(25) : Colors.grey[50],
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected ? color : Colors.grey[200]!,
+            width: isSelected ? 1.5 : 1,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: 22,
+              color: isSelected ? color : Colors.grey[400],
+            ),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                color: isSelected ? color : Colors.grey[500],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // 极简风格按钮
+  Widget _buildMinimalistButton({
+    required String text,
+    required VoidCallback onPressed,
+    required bool isPrimary,
+  }) {
+    return GestureDetector(
+      onTap: onPressed,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        decoration: BoxDecoration(
+          color: isPrimary ? const Color(0xFFFF8A65) : Colors.grey[100],
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Center(
+          child: Text(
+            text,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: isPrimary ? Colors.white : Colors.grey[600],
             ),
           ),
         ),
@@ -413,122 +837,164 @@ class _BabyProfileScreenState extends State<BabyProfileScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       builder: (context) => StatefulBuilder(
-        builder: (context, setState) => Padding(
+        builder: (context, setState) => Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(24),
+              topRight: Radius.circular(24),
+            ),
+          ),
           padding: EdgeInsets.only(
             bottom: MediaQuery.of(context).viewInsets.bottom,
-            left: 16,
-            right: 16,
-            top: 16,
           ),
           child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  '编辑宝宝信息',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: nameController,
-                  decoration: const InputDecoration(
-                    labelText: '宝宝姓名 *',
-                    hintText: '请输入宝宝姓名',
-                  ),
-                ),
-                const SizedBox(height: 16),
-                ListTile(
-                  title: const Text('出生日期 *'),
-                  subtitle: Text(DateFormat('yyyy年MM月dd日').format(selectedDate)),
-                  trailing: const Icon(Icons.calendar_today),
-                  onTap: () async {
-                    final date = await showDatePicker(
-                      context: context,
-                      initialDate: selectedDate,
-                      firstDate: DateTime.now().subtract(const Duration(days: 365 * 5)),
-                      lastDate: DateTime.now(),
-                    );
-                    if (date != null) {
-                      setState(() => selectedDate = date);
-                    }
-                  },
-                ),
-                const Text('性别 *', style: TextStyle(fontSize: 16)),
-                RadioListTile<String>(
-                  title: const Text('男宝宝'),
-                  value: 'male',
-                  groupValue: selectedGender,
-                  onChanged: (value) => setState(() => selectedGender = value!),
-                ),
-                RadioListTile<String>(
-                  title: const Text('女宝宝'),
-                  value: 'female',
-                  groupValue: selectedGender,
-                  onChanged: (value) => setState(() => selectedGender = value!),
-                ),
-                TextField(
-                  controller: birthWeightController,
-                  decoration: const InputDecoration(
-                    labelText: '出生体重 (kg)',
-                    hintText: '可选',
-                  ),
-                  keyboardType: TextInputType.number,
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: birthHeightController,
-                  decoration: const InputDecoration(
-                    labelText: '出生身高 (cm)',
-                    hintText: '可选',
-                  ),
-                  keyboardType: TextInputType.number,
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: notesController,
-                  decoration: const InputDecoration(
-                    labelText: '备注',
-                    hintText: '可选',
-                  ),
-                  maxLines: 2,
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('取消'),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 顶部拖动条
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(2),
+                      ),
                     ),
-                    const SizedBox(width: 8),
-                    ElevatedButton(
-                      onPressed: () {
-                        if (nameController.text.trim().isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('请输入宝宝姓名')),
-                          );
-                          return;
-                        }
-                        _updateBaby(
-                          context,
-                          baby: baby,
-                          name: nameController.text.trim(),
-                          birthDate: selectedDate,
-                          gender: selectedGender,
-                          birthWeight: double.tryParse(birthWeightController.text),
-                          birthHeight: double.tryParse(birthHeightController.text),
-                          notes: notesController.text.trim().isEmpty ? null : notesController.text.trim(),
-                        );
-                        Navigator.pop(context);
-                      },
-                      child: const Text('保存'),
+                  ),
+                  const SizedBox(height: 20),
+                  // 标题
+                  const Text(
+                    '编辑宝宝信息',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF2D2D2D),
+                      letterSpacing: -0.5,
                     ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-              ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '修改宝宝的基本信息',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[500],
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+
+                  // 宝宝姓名
+                  _buildMinimalistTextField(
+                    controller: nameController,
+                    label: '宝宝姓名',
+                    hint: '请输入宝宝姓名',
+                    isRequired: true,
+                  ),
+                  const SizedBox(height: 24),
+
+                  // 出生日期
+                  _buildMinimalistDatePicker(
+                    context: context,
+                    label: '出生日期',
+                    selectedDate: selectedDate,
+                    onDateChanged: (date) => setState(() => selectedDate = date),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // 性别选择
+                  _buildMinimalistGenderSelector(
+                    selectedGender: selectedGender,
+                    onGenderChanged: (gender) => setState(() => selectedGender = gender),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // 出生体重和身高
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildMinimalistTextField(
+                          controller: birthWeightController,
+                          label: '出生体重',
+                          hint: 'kg',
+                          suffix: 'kg',
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: _buildMinimalistTextField(
+                          controller: birthHeightController,
+                          label: '出生身高',
+                          hint: 'cm',
+                          suffix: 'cm',
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  // 备注
+                  _buildMinimalistTextField(
+                    controller: notesController,
+                    label: '备注',
+                    hint: '选填，可添加备注信息',
+                    maxLines: 2,
+                  ),
+                  const SizedBox(height: 32),
+
+                  // 按钮组
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildMinimalistButton(
+                          text: '取消',
+                          onPressed: () => Navigator.pop(context),
+                          isPrimary: false,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: _buildMinimalistButton(
+                          text: '保存',
+                          onPressed: () {
+                            if (nameController.text.trim().isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: const Text('请输入宝宝姓名'),
+                                  backgroundColor: Colors.orange[400],
+                                  behavior: SnackBarBehavior.floating,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                ),
+                              );
+                              return;
+                            }
+                            _updateBaby(
+                              context,
+                              baby: baby,
+                              name: nameController.text.trim(),
+                              birthDate: selectedDate,
+                              gender: selectedGender,
+                              birthWeight: double.tryParse(birthWeightController.text),
+                              birthHeight: double.tryParse(birthHeightController.text),
+                              notes: notesController.text.trim().isEmpty ? null : notesController.text.trim(),
+                            );
+                            Navigator.pop(context);
+                          },
+                          isPrimary: true,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
             ),
           ),
         ),
