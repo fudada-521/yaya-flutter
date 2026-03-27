@@ -287,11 +287,14 @@ class _FeedingScreenState extends State<FeedingScreen> {
   }
 
   Widget _buildNoBabyCard(BuildContext context) {
-    return EmptyBabyCard(
-      title: '还没有添加宝宝信息哦~',
-      subtitle: '点击下方按钮添加宝宝档案',
-      buttonText: '添加宝宝信息',
-      onButtonPressed: () => Navigator.pushNamed(context, '/baby-profile'),
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: EmptyBabyCard(
+        title: '还没有添加宝宝信息哦~',
+        subtitle: '点击下方按钮添加宝宝档案',
+        buttonText: '添加宝宝信息',
+        onButtonPressed: () => Navigator.pushNamed(context, '/baby-profile'),
+      ),
     );
   }
 
