@@ -271,7 +271,7 @@ class DashboardPage extends StatelessWidget {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        // crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _buildWelcomeCard(context),
           const SizedBox(height: 20),
@@ -391,43 +391,52 @@ class DashboardPage extends StatelessWidget {
       ),
       padding: const EdgeInsets.all(24),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.orange[50],
-              shape: BoxShape.circle,
+          Center(
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.orange[50],
+                shape: BoxShape.circle,
+              ),
+              child: Icon(Icons.child_care, size: 48, color: Colors.orange[300]),
             ),
-            child: Icon(Icons.child_care, size: 48, color: Colors.orange[300]),
           ),
           const SizedBox(height: 16),
-          Text(
-            '还没有添加宝宝哦~',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey[700],
+          Center(
+            child: Text(
+              '还没有添加宝宝哦~',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey[700],
+              ),
             ),
           ),
           const SizedBox(height: 8),
-          Text(
-            '点击下方按钮添加宝宝档案',
-            style: TextStyle(fontSize: 13, color: Colors.grey[500]),
+          Center(
+            child: Text(
+              '点击下方按钮添加宝宝档案',
+              style: TextStyle(fontSize: 13, color: Colors.grey[500]),
+            ),
           ),
           const SizedBox(height: 16),
-          GestureDetector(
-            onTap: () => Navigator.pushNamed(context, '/baby-profile'),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFF8A65),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Text(
-                '添加宝宝',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
+          Center(
+            child: GestureDetector(
+              onTap: () => Navigator.pushNamed(context, '/baby-profile'),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFF8A65),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Text(
+                  '添加宝宝',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ),
