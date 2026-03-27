@@ -433,6 +433,10 @@ class _GrowthScreenState extends State<GrowthScreen> {
                     ),
                     PopupMenuButton<String>(
                       icon: Icon(Icons.more_vert, color: Colors.grey[400]),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      elevation: 8,
+                      color: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       onSelected: (value) {
                         if (value == 'edit') {
                           _showEditRecordDialog(context, record);
@@ -445,9 +449,9 @@ class _GrowthScreenState extends State<GrowthScreen> {
                           value: 'edit',
                           child: Row(
                             children: [
-                              Icon(Icons.edit_outlined, size: 18, color: Colors.grey[600]),
-                              const SizedBox(width: 8),
-                              const Text('编辑'),
+                              Icon(Icons.edit_outlined, size: 18, color: Colors.grey[700]),
+                              const SizedBox(width: 10),
+                              const Text('编辑', style: TextStyle(fontSize: 14)),
                             ],
                           ),
                         ),
@@ -456,8 +460,8 @@ class _GrowthScreenState extends State<GrowthScreen> {
                           child: Row(
                             children: [
                               Icon(Icons.delete_outline, size: 18, color: Colors.red[400]),
-                              const SizedBox(width: 8),
-                              Text('删除', style: TextStyle(color: Colors.red[400])),
+                              const SizedBox(width: 10),
+                              Text('删除', style: TextStyle(fontSize: 14, color: Colors.red[400])),
                             ],
                           ),
                         ),
