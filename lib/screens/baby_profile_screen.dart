@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/baby_provider.dart';
 import '../models/baby.dart';
 import 'package:intl/intl.dart';
+import '../widgets/empty_baby_card.dart';
 
 class BabyProfileScreen extends StatefulWidget {
   const BabyProfileScreen({super.key});
@@ -15,8 +16,22 @@ class _BabyProfileScreenState extends State<BabyProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
-        title: const Text('宝宝信息'),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.grey[700]),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const Text(
+          '宝宝信息',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF2D2D2D),
+          ),
+        ),
       ),
       body: Consumer<BabyProvider>(
         builder: (context, babyProvider, child) {
@@ -73,73 +88,11 @@ class _BabyProfileScreenState extends State<BabyProfileScreen> {
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withAlpha(20),
-                blurRadius: 30,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      Colors.orange[50]!,
-                      Colors.orange[100]!.withAlpha(150),
-                    ],
-                  ),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.child_care,
-                  size: 64,
-                  color: Colors.orange[400],
-                ),
-              ),
-              const SizedBox(height: 24),
-              Center(
-                child: Text(
-                  '还没有添加宝宝信息哦~',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.grey[800],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              Center(
-                child: Text(
-                  '记录宝宝的成长每一刻',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[500],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 32),
-              Center(
-                child: _buildMinimalistButton(
-                  text: '添加宝宝信息',
-                  onPressed: () => _showAddBabyDialog(context),
-                  isPrimary: true,
-                ),
-              ),
-            ],
-          ),
+        child: EmptyBabyCard(
+          title: '还没有添加宝宝信息哦~',
+          subtitle: '记录宝宝的成长每一刻',
+          buttonText: '添加宝宝信息',
+          onButtonPressed: () => _showAddBabyDialog(context),
         ),
       ),
     );
