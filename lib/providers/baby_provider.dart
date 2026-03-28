@@ -74,6 +74,11 @@ class BabyProvider extends ChangeNotifier {
     try {
       await _databaseHelper.updateBaby(baby);
       await _loadBabies();
+      // 如果当前宝宝被更新了，需要同步更新 _currentBaby 引用
+      if (_currentBaby != null && _babies.any((b) => b.id == _currentBaby!.id)) {
+        _currentBaby = _babies.firstWhere((b) => b.id == _currentBaby!.id);
+      }
+      notifyListeners();
       return true;
     } catch (e) {
       debugPrint('更新婴儿信息失败: $e');

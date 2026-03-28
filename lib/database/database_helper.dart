@@ -153,10 +153,10 @@ class DatabaseHelper {
   Future<void> deleteBaby(String babyId) async {
     final db = await database;
     // 删除宝宝的所有相关记录
-    await db.delete('feeding_records', where: 'baby_id = ?', whereArgs: [babyId]);
-    await db.delete('sleep_records', where: 'baby_id = ?', whereArgs: [babyId]);
-    await db.delete('diaper_records', where: 'baby_id = ?', whereArgs: [babyId]);
-    await db.delete('growth_records', where: 'baby_id = ?', whereArgs: [babyId]);
+    await db.delete('feeding_records', where: 'babyId = ?', whereArgs: [babyId]);
+    await db.delete('sleep_records', where: 'babyId = ?', whereArgs: [babyId]);
+    await db.delete('diaper_records', where: 'babyId = ?', whereArgs: [babyId]);
+    await db.delete('growth_records', where: 'babyId = ?', whereArgs: [babyId]);
     // 最后删除宝宝本身
     await db.delete('babies', where: 'id = ?', whereArgs: [babyId]);
   }
