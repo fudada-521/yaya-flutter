@@ -8,6 +8,7 @@ import '../models/diaper_record.dart';
 import '../models/growth_record.dart';
 import 'record_bottom_sheet_helper.dart';
 import '../widgets/empty_baby_card.dart';
+import '../widgets/records/timeline_widget.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -496,7 +497,7 @@ class DashboardPage extends StatelessWidget {
   Widget _buildRecentRecords(BuildContext context) {
     return Consumer<RecordsProvider>(
       builder: (context, recordsProvider, child) {
-        final recentRecords = recordsProvider.getRecentRecords(limit: 5);
+        final recentRecords = recordsProvider.getRecentRecords(limit: 10);
 
         return Container(
           decoration: BoxDecoration(
@@ -540,31 +541,10 @@ class DashboardPage extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 16),
-              if (recentRecords.isEmpty)
-                Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      children: [
-                        Icon(
-                          Icons.inbox_outlined,
-                          size: 48,
-                          color: Colors.grey[300],
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          '暂无记录，快去添加吧~',
-                          style: TextStyle(
-                            color: Colors.grey[500],
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                )
-              else
-                ...recentRecords.map((record) => _buildRecordItem(record)),
+              TimelineWidget(
+                records: recentRecords,
+                onRecordTap: (record) => _onRecordTap(context, record),
+              ),
             ],
           ),
         );
@@ -572,106 +552,16 @@ class DashboardPage extends StatelessWidget {
     );
   }
 
-  Widget _buildRecordItem(dynamic record) {
-    IconData icon;
-    Color color;
-    String title;
-    String subtitle;
-    DateTime time;
-
+  void _onRecordTap(BuildContext context, dynamic record) {
     if (record is FeedingRecord) {
-      icon = Icons.restaurant;
-      color = const Color(0xFFFF8A65);
-      title =
-          '${record.typeDisplayName}${record.amount != null ? ' ${record.amount}ml' : ''}';
-      subtitle = record.methodDisplayName;
-      time = record.feedTime;
+      RecordBottomSheetHelper.showEditFeedingRecord(context, record);
     } else if (record is SleepRecord) {
-      icon = Icons.bedtime;
-      color = const Color(0xFF64B5F6);
-      title = record.type;
-      subtitle = record.durationString ?? '睡眠中';
-      time = record.startTime;
+      RecordBottomSheetHelper.showEditSleepRecord(context, record);
     } else if (record is DiaperRecord) {
-      icon = Icons.baby_changing_station;
-      color = const Color(0xFF81C784);
-      title = '换尿布 - ${record.typeDisplayName}';
-      subtitle = record.statusDisplayName;
-      time = record.changeTime;
+      RecordBottomSheetHelper.showEditDiaperRecord(context, record);
     } else if (record is GrowthRecord) {
-      icon = Icons.trending_up;
-      color = const Color(0xFFBA68C8);
-      title = '成长记录';
-      subtitle = '${record.weight}kg, ${record.height}cm';
-      time = record.recordDate;
-    } else {
-      return const SizedBox.shrink();
+      RecordBottomSheetHelper.showEditGrowthRecord(context, record);
     }
-
-    final timeDiff = DateTime.now().difference(time);
-    String timeText;
-    if (timeDiff.inDays > 0) {
-      timeText = '${timeDiff.inDays}天前';
-    } else if (timeDiff.inHours > 0) {
-      timeText = '${timeDiff.inHours}小时前';
-    } else if (timeDiff.inMinutes > 0) {
-      timeText = '${timeDiff.inMinutes}分钟前';
-    } else {
-      timeText = '刚刚';
-    }
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: color.withAlpha(25),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(icon, color: color, size: 20),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF2D2D2D),
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  subtitle,
-                  style: TextStyle(fontSize: 12, color: Colors.grey[500]),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: Colors.grey[100],
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              timeText,
-              style: TextStyle(fontSize: 11, color: Colors.grey[500]),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }
 
