@@ -140,12 +140,21 @@ class TimelineWidget extends StatelessWidget {
                   // Date and time (aligned with dot center)
                   Padding(
                     padding: const EdgeInsets.only(top: 2),
-                    child: Text(
-                      '${_formatDate(recordDate)} ${_formatTime(recordDate)}',
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: Colors.grey[500],
-                      ),
+                    child: Builder(
+                      builder: (context) {
+                        final dateStr = _formatDate(recordDate);
+                        final timeStr = _formatTime(recordDate);
+                        final relativeTime = _getRelativeTime(recordDate);
+                        return Text(
+                          relativeTime != null
+                              ? '$dateStr $timeStr $relativeTime'
+                              : '$dateStr $timeStr',
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: Colors.grey[500],
+                          ),
+                        );
+                      },
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -288,6 +297,23 @@ class TimelineWidget extends StatelessWidget {
       // 更早的日期，显示 "M月d日"
       return DateFormat('M月d日').format(date);
     }
+  }
+
+  String? _getRelativeTime(DateTime date) {
+    final now = DateTime.now();
+    final difference = now.difference(date);
+
+    // Only show relative time for records within 24 hours (today)
+    if (difference.inDays == 0) {
+      if (difference.inMinutes < 1) {
+        return '刚刚';
+      } else if (difference.inMinutes < 60) {
+        return '${difference.inMinutes}分钟前';
+      } else {
+        return '${difference.inHours}小时前';
+      }
+    }
+    return null; // Don't show relative time for records older than 24 hours
   }
 
   String _formatTime(DateTime date) {
