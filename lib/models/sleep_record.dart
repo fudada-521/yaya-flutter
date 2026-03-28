@@ -1,35 +1,34 @@
-import 'package:uuid/uuid.dart';
+import 'base_record.dart';
 
-class SleepRecord {
-  final String id;
-  final String babyId;
+class SleepRecord extends BaseRecord {
   final DateTime startTime;
   final DateTime? endTime;
   final int? quality; // 1-5评分
   final String? notes;
-  final DateTime createdAt;
 
   SleepRecord({
-    String? id,
-    required this.babyId,
+    super.id,
+    required super.babyId,
     required this.startTime,
     this.endTime,
     this.quality,
     this.notes,
-    DateTime? createdAt,
-  }) : id = id ?? const Uuid().v4(),
-       createdAt = createdAt ?? DateTime.now();
+    super.createdAt,
+  });
 
+  @override
+  String get tableName => 'sleep_records';
+
+  @override
   Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'babyId': babyId,
+    final map = super.toMap();
+    map.addAll({
       'startTime': startTime.toIso8601String(),
       'endTime': endTime?.toIso8601String(),
       'quality': quality,
       'notes': notes,
-      'createdAt': createdAt.toIso8601String(),
-    };
+    });
+    return map;
   }
 
   factory SleepRecord.fromMap(Map<String, dynamic> map) {
@@ -44,23 +43,24 @@ class SleepRecord {
     );
   }
 
+  @override
   SleepRecord copyWith({
     String? id,
     String? babyId,
+    DateTime? createdAt,
     DateTime? startTime,
     DateTime? endTime,
     int? quality,
     String? notes,
-    DateTime? createdAt,
   }) {
     return SleepRecord(
       id: id ?? this.id,
       babyId: babyId ?? this.babyId,
+      createdAt: createdAt ?? this.createdAt,
       startTime: startTime ?? this.startTime,
       endTime: endTime ?? this.endTime,
       quality: quality ?? this.quality,
       notes: notes ?? this.notes,
-      createdAt: createdAt ?? this.createdAt,
     );
   }
 
@@ -74,7 +74,7 @@ class SleepRecord {
     if (dur == null) return null;
     final hours = dur.inHours;
     final minutes = dur.inMinutes % 60;
-    return '$hours小时$minutes分钟';
+    return '$hours 小时 $minutes 分钟';
   }
 
   String get qualityString {

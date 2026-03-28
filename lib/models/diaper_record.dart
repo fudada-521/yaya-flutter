@@ -1,35 +1,34 @@
-import 'package:uuid/uuid.dart';
+import 'base_record.dart';
 
-class DiaperRecord {
-  final String id;
-  final String babyId;
+class DiaperRecord extends BaseRecord {
   final DateTime changeTime;
   final String type; // 'wet', 'dirty', 'mixed'
   final String status; // 'normal', 'loose', 'hard', 'blood'
   final String? notes;
-  final DateTime createdAt;
 
   DiaperRecord({
-    String? id,
-    required this.babyId,
+    super.id,
+    required super.babyId,
     required this.changeTime,
     required this.type,
     required this.status,
     this.notes,
-    DateTime? createdAt,
-  }) : id = id ?? const Uuid().v4(),
-       createdAt = createdAt ?? DateTime.now();
+    super.createdAt,
+  });
 
+  @override
+  String get tableName => 'diaper_records';
+
+  @override
   Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'babyId': babyId,
+    final map = super.toMap();
+    map.addAll({
       'changeTime': changeTime.toIso8601String(),
       'type': type,
       'status': status,
       'notes': notes,
-      'createdAt': createdAt.toIso8601String(),
-    };
+    });
+    return map;
   }
 
   factory DiaperRecord.fromMap(Map<String, dynamic> map) {
@@ -44,23 +43,24 @@ class DiaperRecord {
     );
   }
 
+  @override
   DiaperRecord copyWith({
     String? id,
     String? babyId,
+    DateTime? createdAt,
     DateTime? changeTime,
     String? type,
     String? status,
     String? notes,
-    DateTime? createdAt,
   }) {
     return DiaperRecord(
       id: id ?? this.id,
       babyId: babyId ?? this.babyId,
+      createdAt: createdAt ?? this.createdAt,
       changeTime: changeTime ?? this.changeTime,
       type: type ?? this.type,
       status: status ?? this.status,
       notes: notes ?? this.notes,
-      createdAt: createdAt ?? this.createdAt,
     );
   }
 

@@ -1,38 +1,37 @@
-import 'package:uuid/uuid.dart';
+import 'base_record.dart';
 
-class GrowthRecord {
-  final String id;
-  final String babyId;
+class GrowthRecord extends BaseRecord {
   final DateTime recordDate;
   final double? height; // cm
   final double? weight; // kg
   final double? headCircumference; // cm
   final String? notes;
-  final DateTime createdAt;
 
   GrowthRecord({
-    String? id,
-    required this.babyId,
+    super.id,
+    required super.babyId,
     required this.recordDate,
     this.height,
     this.weight,
     this.headCircumference,
     this.notes,
-    DateTime? createdAt,
-  }) : id = id ?? const Uuid().v4(),
-       createdAt = createdAt ?? DateTime.now();
+    super.createdAt,
+  });
 
+  @override
+  String get tableName => 'growth_records';
+
+  @override
   Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'babyId': babyId,
+    final map = super.toMap();
+    map.addAll({
       'recordDate': recordDate.toIso8601String(),
       'height': height,
       'weight': weight,
       'headCircumference': headCircumference,
       'notes': notes,
-      'createdAt': createdAt.toIso8601String(),
-    };
+    });
+    return map;
   }
 
   factory GrowthRecord.fromMap(Map<String, dynamic> map) {
@@ -48,25 +47,26 @@ class GrowthRecord {
     );
   }
 
+  @override
   GrowthRecord copyWith({
     String? id,
     String? babyId,
+    DateTime? createdAt,
     DateTime? recordDate,
     double? height,
     double? weight,
     double? headCircumference,
     String? notes,
-    DateTime? createdAt,
   }) {
     return GrowthRecord(
       id: id ?? this.id,
       babyId: babyId ?? this.babyId,
+      createdAt: createdAt ?? this.createdAt,
       recordDate: recordDate ?? this.recordDate,
       height: height ?? this.height,
       weight: weight ?? this.weight,
       headCircumference: headCircumference ?? this.headCircumference,
       notes: notes ?? this.notes,
-      createdAt: createdAt ?? this.createdAt,
     );
   }
 
@@ -76,20 +76,15 @@ class GrowthRecord {
   // 标准生长曲线参考值（WHO标准）
   double? get heightPercentile {
     if (height == null) return null;
-    // 简化的参考值，实际应用中应该使用完整的生长曲线数据
     final age = ageInMonths;
     if (age < 0) return null;
-
-    // 这里只是示例，实际应该使用专业的生长曲线数据库
     return 50.0; // 假设都是50百分位
   }
 
   double? get weightPercentile {
     if (weight == null) return null;
-    // 简化的参考值
     final age = ageInMonths;
     if (age < 0) return null;
-
     return 50.0; // 假设都是50百分位
   }
 
