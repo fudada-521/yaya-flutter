@@ -271,7 +271,23 @@ class TimelineWidget extends StatelessWidget {
   }
 
   String _formatDate(DateTime date) {
-    return DateFormat('yyyy-MM-dd').format(date);
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final recordDay = DateTime(date.year, date.month, date.day);
+    final difference = today.difference(recordDay).inDays;
+
+    if (difference == 0) {
+      return '今天';
+    } else if (difference == 1) {
+      return '昨天';
+    } else if (difference < 7) {
+      // 本周内，显示周几
+      const weekdays = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+      return weekdays[date.weekday - 1];
+    } else {
+      // 更早的日期，显示 "M月d日"
+      return DateFormat('M月d日').format(date);
+    }
   }
 
   String _formatTime(DateTime date) {
