@@ -47,9 +47,19 @@ class DatabaseHelper {
     // 移动端使用默认的 sqflite
     return await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
     );
+  }
+
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      // 添加 duration 列到喂养记录表
+      await db.execute('''
+        ALTER TABLE feeding_records ADD COLUMN duration INTEGER
+      ''');
+    }
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -78,6 +88,7 @@ class DatabaseHelper {
         amount REAL,
         type TEXT NOT NULL,
         method TEXT,
+        duration INTEGER,
         notes TEXT,
         createdAt TEXT NOT NULL,
         FOREIGN KEY (babyId) REFERENCES babies (id) ON DELETE CASCADE

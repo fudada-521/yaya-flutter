@@ -22,6 +22,19 @@ class RecordsProvider extends ChangeNotifier {
   // 加载状态
   bool _isLoading = false;
 
+  RecordsProvider() {
+    _initializeAndLoad();
+  }
+
+  Future<void> _initializeAndLoad() async {
+    try {
+      await _databaseHelper.database;
+      await loadAllRecords();
+    } catch (e) {
+      debugPrint('初始化记录数据失败: $e');
+    }
+  }
+
   // Getters
   List<FeedingRecord> get feedingRecords => _filteredFeedingRecords;
   List<SleepRecord> get sleepRecords => _filteredSleepRecords;

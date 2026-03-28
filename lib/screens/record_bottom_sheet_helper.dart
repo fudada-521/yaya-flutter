@@ -10,9 +10,93 @@ import '../models/baby.dart';
 import 'package:intl/intl.dart';
 
 class RecordBottomSheetHelper {
+  // ==================== 检查宝宝是否存在 ====================
+
+  static bool _checkBabyExists(BuildContext context) {
+    final babyProvider = Provider.of<BabyProvider>(context, listen: false);
+    final currentBaby = babyProvider.currentBaby;
+    if (currentBaby == null) {
+      _showNoBabyPrompt(context);
+      return false;
+    }
+    return true;
+  }
+
+  static void _showNoBabyPrompt(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(topLeft: Radius.circular(24), topRight: Radius.circular(24)),
+        ),
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(color: Colors.orange[50], shape: BoxShape.circle),
+              child: Icon(Icons.child_care, color: Colors.orange[400], size: 32),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              '请先添加宝宝信息',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Color(0xFF2D2D2D)),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '添加宝宝信息后才能记录喂养、睡眠、尿布等数据',
+              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(child: _buildButton('取消', false, () => Navigator.pop(context))),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.pop(context);
+                      showAddBaby(context);
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFF8A65),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Center(child: Text('添加宝宝', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white))),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
   // ==================== 喂养记录 BottomSheet ====================
 
   static void showAddFeedingRecord(BuildContext context) {
+    if (!_checkBabyExists(context)) return;
+
     final amountController = TextEditingController();
     final notesController = TextEditingController();
     DateTime selectedDateTime = DateTime.now();
@@ -340,6 +424,8 @@ class RecordBottomSheetHelper {
   // ==================== 睡眠记录 BottomSheet ====================
 
   static void showAddSleepRecord(BuildContext context) {
+    if (!_checkBabyExists(context)) return;
+
     DateTime startTime = DateTime.now();
     DateTime? endTime;
     int selectedQuality = 3;
@@ -550,6 +636,8 @@ class RecordBottomSheetHelper {
   // ==================== 尿布记录 BottomSheet ====================
 
   static void showAddDiaperRecord(BuildContext context) {
+    if (!_checkBabyExists(context)) return;
+
     DateTime selectedDateTime = DateTime.now();
     String selectedType = 'wet';
     String selectedStatus = 'normal';
@@ -802,6 +890,8 @@ class RecordBottomSheetHelper {
   // ==================== 成长记录 BottomSheet ====================
 
   static void showAddGrowthRecord(BuildContext context) {
+    if (!_checkBabyExists(context)) return;
+
     DateTime selectedDate = DateTime.now();
     final weightController = TextEditingController();
     final heightController = TextEditingController();
@@ -1587,6 +1677,8 @@ class RecordBottomSheetHelper {
   // ==================== 快速成长记录 ====================
 
   static void showQuickHeightRecord(BuildContext context) {
+    if (!_checkBabyExists(context)) return;
+
     final heightController = TextEditingController();
     DateTime selectedDate = DateTime.now();
 
@@ -1652,6 +1744,8 @@ class RecordBottomSheetHelper {
   }
 
   static void showQuickWeightRecord(BuildContext context) {
+    if (!_checkBabyExists(context)) return;
+
     final weightController = TextEditingController();
     DateTime selectedDate = DateTime.now();
 
@@ -1717,6 +1811,8 @@ class RecordBottomSheetHelper {
   }
 
   static void showQuickHeadCircumferenceRecord(BuildContext context) {
+    if (!_checkBabyExists(context)) return;
+
     final headController = TextEditingController();
     DateTime selectedDate = DateTime.now();
 
