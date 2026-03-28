@@ -51,7 +51,7 @@ class TimelineWidget extends StatelessWidget {
         final isLastOverall = isLastInGroup && entry.key == groupedRecords.keys.last;
         allRecordsWithLast.add(_RecordWithLast(
           record: recordsInGroup[i],
-          isLast: !isLastOverall, // Show line if NOT the very last record
+          isLast: isLastOverall, // Show line if NOT the very last record
         ));
       }
     }
@@ -150,9 +150,10 @@ class TimelineWidget extends StatelessWidget {
                         final dateStr = _formatDate(recordDate);
                         final timeStr = _formatTime(recordDate);
                         final relativeTime = _getRelativeTime(recordDate);
+                        final isTodayOrRecent = _isTodayOrWithin2Hours(recordDate);
                         return Text(
                           relativeTime != null
-                              ? '$dateStr $timeStr $relativeTime'
+                              ? (isTodayOrRecent ? '$timeStr $relativeTime' : '$dateStr $timeStr $relativeTime')
                               : '$dateStr $timeStr',
                           style: TextStyle(
                             fontSize: 10,
@@ -319,6 +320,16 @@ class TimelineWidget extends StatelessWidget {
       }
     }
     return null; // Don't show relative time for records older than 24 hours
+  }
+
+  bool _isTodayOrWithin2Hours(DateTime date) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final recordDay = DateTime(date.year, date.month, date.day);
+    final difference = today.difference(recordDay).inDays;
+    final hoursDiff = now.difference(date).inHours;
+    // 今天是同一天，或者距离现在不超过2小时
+    return difference == 0 || hoursDiff < 2;
   }
 
   String _formatTime(DateTime date) {
