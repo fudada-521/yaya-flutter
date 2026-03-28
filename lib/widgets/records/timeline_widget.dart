@@ -75,17 +75,7 @@ class TimelineWidget extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.only(left: 8, bottom: 8),
-          child: Text(
-            dateLabel,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey[600],
-            ),
-          ),
-        ),
+        // Timeline items
         ...records.asMap().entries.map((entry) {
           final index = entry.key;
           final record = entry.value;
@@ -102,17 +92,18 @@ class TimelineWidget extends StatelessWidget {
     final color = _getColor(record);
     final title = _getTitle(record);
     final subtitle = _getSubtitle(record);
-    final time = _getTime(record);
+    final recordDate = _getRecordDate(record);
 
     return IntrinsicHeight(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Timeline line and dot
+          // Timeline dot and line (left side)
           SizedBox(
-            width: 32,
+            width: 40,
             child: Column(
               children: [
+                const SizedBox(height: 4),
                 Container(
                   width: 12,
                   height: 12,
@@ -139,57 +130,74 @@ class TimelineWidget extends StatelessWidget {
               ],
             ),
           ),
-          // Record card
+          // Date/time and record card (right side)
           Expanded(
-            child: GestureDetector(
-              onTap: () => onRecordTap(record),
-              child: Container(
-                margin: const EdgeInsets.only(bottom: 8),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.grey[50],
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey[100]!),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: color.withAlpha(25),
-                        borderRadius: BorderRadius.circular(10),
+            child: Padding(
+              padding: const EdgeInsets.only(right: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Date and time (aligned with dot center)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Text(
+                      '${_formatDate(recordDate)} ${_formatTime(recordDate)}',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: Colors.grey[500],
                       ),
-                      child: Icon(iconData, color: color, size: 18),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                  ),
+                  const SizedBox(height: 4),
+                  // Record card
+                  GestureDetector(
+                    onTap: () => onRecordTap(record),
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[50],
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.grey[100]!),
+                      ),
+                      child: Row(
                         children: [
-                          Text(
-                            title,
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xFF2D2D2D),
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: color.withAlpha(25),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Icon(iconData, color: color, size: 18),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  title,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: Color(0xFF2D2D2D),
+                                  ),
+                                ),
+                                if (subtitle.isNotEmpty) ...[
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    subtitle,
+                                    style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                                  ),
+                                ],
+                              ],
                             ),
                           ),
-                          if (subtitle.isNotEmpty) ...[
-                            const SizedBox(height: 2),
-                            Text(
-                              subtitle,
-                              style: TextStyle(fontSize: 12, color: Colors.grey[500]),
-                            ),
-                          ],
                         ],
                       ),
                     ),
-                    Text(
-                      time,
-                      style: TextStyle(fontSize: 12, color: Colors.grey[400]),
-                    ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 8),
+                ],
               ),
             ),
           ),
@@ -262,8 +270,11 @@ class TimelineWidget extends StatelessWidget {
     return '';
   }
 
-  String _getTime(dynamic record) {
-    final date = _getRecordDate(record);
+  String _formatDate(DateTime date) {
+    return DateFormat('yyyy-MM-dd').format(date);
+  }
+
+  String _formatTime(DateTime date) {
     return DateFormat('HH:mm').format(date);
   }
 }

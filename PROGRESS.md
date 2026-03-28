@@ -215,5 +215,77 @@ yaya_diary/
 
 ---
 
-**更新时间**：2026-03-27
-**当前阶段**：核心功能完备，UI细节优化中
+---
+
+## 🎉 最新更新 (2026-03-29) - 设计模式重构
+
+### 数据库迁移修复
+- **问题**: 喂养记录添加失败 `table feeding_records has no column named duration`
+- **解决**: 添加数据库版本升级逻辑 (v1 → v2)
+- **文件**: `lib/database_helper.dart`
+
+### RecordBottomSheetHelper 重构 (2233行 → 603行)
+- **问题**: 文件过于臃肿，代码重复
+- **解决方案**: 设计模式重构
+  - 创建7个公共表单组件 (`lib/widgets/sheet/components/`)
+    - `sheet_handle.dart` - 底部表单把手
+    - `sheet_header.dart` - 表单头部
+    - `sheet_text_field.dart` - 文本输入框
+    - `sheet_chip_selector.dart` - 芯片选择器
+    - `sheet_segmented_selector.dart` - 分段选择器
+    - `sheet_date_picker.dart` - 日期时间选择器
+    - `sheet_action_buttons.dart` - 操作按钮组
+  - 创建基类 `base_record_sheet.dart` (模板方法模式)
+  - 创建4个具体表单类 (策略模式)
+    - `feeding_record_sheet.dart`
+    - `sleep_record_sheet.dart`
+    - `diaper_record_sheet.dart`
+    - `growth_record_sheet.dart`
+  - 重构 `record_bottom_sheet_helper.dart` (603行)
+
+### 记录 Screen 重构 (1948行 → 879行)
+- **问题**: 4个记录Screen结构重复
+- **解决方案**: 创建公共组件 (`lib/widgets/records/`)
+  - `record_fab.dart` - 浮动添加按钮
+  - `record_stats_card.dart` - 统计卡片
+  - `quick_record_area.dart` - 快速记录区
+  - `record_list_card.dart` - 记录列表卡片
+  - `records_empty_state.dart` - 空状态组件
+  - `timeline_widget.dart` - 时间轴组件
+- **重构Screen**:
+  - `feeding_screen.dart`
+  - `sleep_screen.dart`
+  - `diaper_screen.dart`
+  - `growth_screen.dart`
+- **删除文件**:
+  - `base_record_screen.dart`
+  - `record_screen_body.dart`
+
+### Model 层重构
+- **创建**: `lib/models/base_record.dart` - 所有记录模型的基类
+- **继承模型**: `FeedingRecord`, `SleepRecord`, `DiaperRecord`, `GrowthRecord`
+
+### 首页时间轴组件
+- **创建**: `lib/widgets/records/timeline_widget.dart`
+- **布局**:
+  - 时间轴在最左侧
+  - 日期时间与时间轴刻度水平中心对齐
+  - 记录卡片在日期时间下方
+
+### 代码统计
+| 阶段 | 文件数 | 总行数 |
+|------|--------|--------|
+| 重构前 (RecordBottomSheetHelper) | 1 | 2233 |
+| 重构后 | 12 | 603 |
+| 节省 | - | 1630 (73%) |
+
+| 阶段 | 文件数 | 总行数 |
+|------|--------|--------|
+| 重构前 (4个Screen) | 4 | 1948 |
+| 重构后 | 9 | 879 |
+| 节省 | - | 1069 (55%) |
+
+---
+
+**更新时间**：2026-03-29
+**当前阶段**：设计模式重构完成，首页时间轴组件完成
