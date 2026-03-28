@@ -5,6 +5,12 @@ import '../../models/sleep_record.dart';
 import '../../models/diaper_record.dart';
 import '../../models/growth_record.dart';
 
+class _RecordWithLast {
+  final dynamic record;
+  final bool isLast;
+  _RecordWithLast({required this.record, required this.isLast});
+}
+
 class TimelineWidget extends StatelessWidget {
   final List<dynamic> records;
   final Function(dynamic record) onRecordTap;
@@ -36,11 +42,26 @@ class TimelineWidget extends StatelessWidget {
     // Group records by date
     final groupedRecords = _groupRecordsByDate(records);
 
+    // Flatten all records with their "isLast" info for continuous timeline
+    final allRecordsWithLast = <_RecordWithLast>[];
+    for (final entry in groupedRecords.entries) {
+      final recordsInGroup = entry.value;
+      for (int i = 0; i < recordsInGroup.length; i++) {
+        final isLastInGroup = i == recordsInGroup.length - 1;
+        final isLastOverall = isLastInGroup && entry.key == groupedRecords.keys.last;
+        allRecordsWithLast.add(_RecordWithLast(
+          record: recordsInGroup[i],
+          isLast: !isLastOverall, // Show line if NOT the very last record
+        ));
+      }
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: groupedRecords.entries.map((entry) {
-        return _buildDateSection(context, entry.key, entry.value);
-      }).toList(),
+      children: [
+        ...allRecordsWithLast.map((item) => _buildTimelineItem(context, item.record, item.isLast)),
+        const SizedBox(height: 12),
+      ],
     );
   }
 
@@ -69,22 +90,6 @@ class TimelineWidget extends StatelessWidget {
     }
 
     return grouped;
-  }
-
-  Widget _buildDateSection(BuildContext context, String dateLabel, List<dynamic> records) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Timeline items
-        ...records.asMap().entries.map((entry) {
-          final index = entry.key;
-          final record = entry.value;
-          final isLast = index == records.length - 1;
-          return _buildTimelineItem(context, record, isLast);
-        }),
-        const SizedBox(height: 12),
-      ],
-    );
   }
 
   Widget _buildTimelineItem(BuildContext context, dynamic record, bool isLast) {
