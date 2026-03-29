@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+/// 记录悬浮按钮组件
+///
+/// 渐变色背景的浮动操作按钮，用于打开添加记录页面。
+/// 支持 primaryColor 和 secondaryColor 配置渐变效果。
 class RecordFab extends StatelessWidget {
   final Color primaryColor;
   final Color secondaryColor;

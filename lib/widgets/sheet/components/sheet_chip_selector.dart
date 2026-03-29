@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+/// 底部表单芯片选择器组件
+///
+/// Wrap 布局的标签选择器，支持单选/多选。
+/// 选中状态有颜色区分，支持图标展示。
 class SheetChipSelector extends StatelessWidget {
   final String label;
   final List<SheetChipOption> options;
@@ -89,6 +93,10 @@ class SheetChipSelector extends StatelessWidget {
   }
 }
 
+/// 芯片选项数据模型
+///
+/// 用于 SheetChipSelector 组件的选项配置，
+/// 包含值、标签、图标和颜色。
 class SheetChipOption {
   final String value;
   final String label;

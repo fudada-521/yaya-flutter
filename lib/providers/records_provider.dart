@@ -5,6 +5,11 @@ import '../models/sleep_record.dart';
 import '../models/diaper_record.dart';
 import '../models/growth_record.dart';
 
+/// 记录数据状态管理类
+///
+/// 使用 Provider 模式管理所有记录类型的全局状态。
+/// 支持四种记录类型：喂养、睡眠、尿布、成长。
+/// 提供筛选功能（按宝宝、日期范围）和数据统计。
 class RecordsProvider extends ChangeNotifier {
   final DatabaseHelper _databaseHelper = DatabaseHelper();
 

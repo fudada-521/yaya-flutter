@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 import '../models/baby.dart';
 import '../database/database_helper.dart';
 
+/// 宝宝档案状态管理类
+///
+/// 使用 Provider 模式管理宝宝档案的全局状态。
+/// 负责宝宝的 CRUD 操作（创建、读取、更新、删除），
+/// 以及当前选中宝宝的管理。
 class BabyProvider extends ChangeNotifier {
   final DatabaseHelper _databaseHelper = DatabaseHelper();
   List<Baby> _babies = [];

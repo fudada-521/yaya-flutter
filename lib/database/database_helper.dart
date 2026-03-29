@@ -7,6 +7,16 @@ import '../models/sleep_record.dart';
 import '../models/diaper_record.dart';
 import '../models/growth_record.dart';
 
+/// 数据库管理单例类
+///
+/// 负责管理 SQLite 数据库的初始化和所有表的 CRUD 操作。
+/// 使用单例模式确保全局只有一个数据库实例。
+///
+/// 数据库版本管理：
+/// - v1: 初始版本
+/// - v2: 添加 feeding_records 表的 duration 列
+///
+/// 支持的表：babies、feeding_records、sleep_records、diaper_records、growth_records
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
   factory DatabaseHelper() => _instance;

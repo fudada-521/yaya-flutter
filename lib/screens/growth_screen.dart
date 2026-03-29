@@ -7,6 +7,11 @@ import 'record_bottom_sheet_helper.dart';
 import '../widgets/records/records.dart';
 import '../widgets/empty_baby_card.dart';
 
+/// 成长记录页面
+///
+/// 记录宝宝的身高（cm）、体重（kg）和头围（cm）。
+/// 支持身高、体重、头围三种快速单独记录。
+/// 显示最新成长数据和成长记录列表。
 class GrowthScreen extends StatefulWidget {
   const GrowthScreen({super.key});
 

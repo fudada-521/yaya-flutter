@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+/// 记录统计卡片组件
+///
+/// 显示标题、图标和多个统计项（标签+数值+颜色）。
+/// 用于今日统计、快速记录区等场景。
 class RecordStatsCard extends StatelessWidget {
   final String title;
   final IconData icon;
@@ -95,6 +99,10 @@ class RecordStatsCard extends StatelessWidget {
   }
 }
 
+/// 统计项数据模型
+///
+/// 包含标签、数值和颜色三个属性，
+/// 用于 RecordStatsCard 组件展示统计数据。
 class StatItem {
   final String label;
   final String value;

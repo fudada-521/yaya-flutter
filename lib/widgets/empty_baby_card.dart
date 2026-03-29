@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+/// 空宝宝状态卡片组件
+///
+/// 当没有宝宝信息时显示的空状态提示卡片，
+/// 包含图标、标题、副标题和操作按钮。
 class EmptyBabyCard extends StatelessWidget {
   final String title;
   final String subtitle;

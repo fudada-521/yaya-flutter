@@ -6,6 +6,11 @@ import 'package:intl/intl.dart';
 import '../widgets/empty_baby_card.dart';
 import 'record_bottom_sheet_helper.dart';
 
+/// 宝宝档案页面
+///
+/// 显示当前选中宝宝的详细信息（姓名、性别、出生日期、年龄等）。
+/// 支持多宝宝切换、编辑宝宝信息、删除宝宝功能。
+/// 可添加新宝宝档案。
 class BabyProfileScreen extends StatefulWidget {
   const BabyProfileScreen({super.key});
 

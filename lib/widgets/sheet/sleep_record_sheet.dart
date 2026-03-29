@@ -7,6 +7,10 @@ import '../../providers/baby_provider.dart';
 import 'base_record_sheet.dart';
 import 'components/components.dart';
 
+/// 睡眠记录表单组件（策略模式）
+///
+/// 支持添加和编辑睡眠记录，
+/// 包含开始时间、结束时间、睡眠质量、备注等字段。
 class SleepRecordSheet extends BaseRecordSheet<SleepRecordState> {
   final SleepRecord? recordToEdit;
 
@@ -83,6 +87,10 @@ class SleepRecordSheet extends BaseRecordSheet<SleepRecordState> {
   }
 }
 
+/// 睡眠记录表单状态
+///
+/// 存储睡眠记录表单的临时数据，
+/// 包括开始时间、结束时间、睡眠质量和备注。
 class SleepRecordState {
   DateTime startTime;
   DateTime? endTime;
@@ -107,6 +115,9 @@ class SleepRecordState {
   }
 }
 
+/// 睡眠日期时间选择器组组件
+///
+/// 同时显示开始时间和结束时间的两个选择器。
 class _SleepDateTimePickers extends StatelessWidget {
   final DateTime startTime;
   final DateTime? endTime;
@@ -155,6 +166,9 @@ class _SleepDateTimePickers extends StatelessWidget {
   }
 }
 
+/// 日期时间选择瓦片组件
+///
+/// 显示日期和时间的单个选择器。
 class _DateTimeTile extends StatelessWidget {
   final String label;
   final DateTime dateTime;
@@ -236,6 +250,9 @@ class _DateTimeTile extends StatelessWidget {
   }
 }
 
+/// 睡眠结束开关组件
+///
+/// 切换睡眠是否已结束的状态。
 class _EndSwitch extends StatelessWidget {
   final DateTime? endTime;
   final ValueChanged<DateTime?> onChanged;
@@ -279,6 +296,9 @@ class _EndSwitch extends StatelessWidget {
   }
 }
 
+/// 睡眠质量选择器组件
+///
+/// 5星评分选择器，用于评价睡眠质量。
 class _QualitySelector extends StatelessWidget {
   final int selectedQuality;
   final ValueChanged<int> onChanged;

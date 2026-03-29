@@ -7,6 +7,11 @@ import 'record_bottom_sheet_helper.dart';
 import '../widgets/records/records.dart';
 import '../widgets/empty_baby_card.dart';
 
+/// 换尿布记录页面
+///
+/// 记录宝宝换尿布的时间、类型（小便/大便/混合）和健康状态。
+/// 支持小便、大便、混合三种快速记录按钮。
+/// 显示今日尿布统计和换尿布记录列表。
 class DiaperScreen extends StatefulWidget {
   const DiaperScreen({super.key});
 

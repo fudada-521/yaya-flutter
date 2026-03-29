@@ -6,6 +6,10 @@ import '../../providers/baby_provider.dart';
 import 'base_record_sheet.dart';
 import 'components/components.dart';
 
+/// 尿布记录表单组件（策略模式）
+///
+/// 支持添加和编辑尿布记录，
+/// 包含更换时间、尿布类型（湿/脏/都有）、状态（正常/稀便/便秘）等字段。
 class DiaperRecordSheet extends BaseRecordSheet<DiaperRecordState> {
   final DiaperRecord? recordToEdit;
 
@@ -88,6 +92,10 @@ class DiaperRecordSheet extends BaseRecordSheet<DiaperRecordState> {
   }
 }
 
+/// 尿布记录表单状态
+///
+/// 存储尿布记录表单的临时数据，
+/// 包括更换时间、尿布类型和状态。
 class DiaperRecordState {
   DateTime changeTime;
   String type;

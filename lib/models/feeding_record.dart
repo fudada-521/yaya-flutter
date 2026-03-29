@@ -1,5 +1,14 @@
 import 'base_record.dart';
 
+/// 喂养记录数据模型
+///
+/// 支持四种喂养类型：
+/// - breast：母乳亲喂（记录时长，分钟）
+/// - pumped：母乳瓶喂（记录奶量，ml）
+/// - bottle：奶粉（记录奶量，ml）
+/// - solid：辅食（记录奶量，ml/g）
+///
+/// 母乳亲喂可额外记录喂养方式（左侧/右侧/混合）。
 class FeedingRecord extends BaseRecord {
   final DateTime feedTime;
   final double? amount; // ml or g

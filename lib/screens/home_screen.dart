@@ -10,6 +10,13 @@ import 'record_bottom_sheet_helper.dart';
 import '../widgets/empty_baby_card.dart';
 import '../widgets/records/timeline_widget.dart';
 
+/// 首页组件
+///
+/// 包含底部导航栏和四个页面：
+/// - DashboardPage：仪表盘（欢迎卡片、今日统计、最近记录）
+/// - RecordsPage：记录分类列表
+/// - StatisticsPage：统计分析页面
+/// - SettingsPage：设置页面
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -265,6 +272,11 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
+/// 仪表盘页面
+///
+/// 显示欢迎卡片（宝宝头像、姓名、出生天数）、
+/// 今日统计（喂养次数、睡眠时长、尿布次数）、
+/// 最近记录时间轴。
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
 
@@ -565,6 +577,11 @@ class DashboardPage extends StatelessWidget {
   }
 }
 
+/// 记录分类列表页面
+///
+/// 显示四大记录类型的分类卡片：
+/// 喂养记录、睡眠记录、换尿布记录、成长记录。
+/// 点击可跳转到对应的详细记录页面。
 class RecordsPage extends StatelessWidget {
   const RecordsPage({super.key});
 
@@ -688,6 +705,10 @@ class RecordsPage extends StatelessWidget {
   }
 }
 
+/// 统计分析页面
+///
+/// 显示今日统计、趋势概览和详细统计数据，
+/// 包括累计喂养次数、累计奶量、累计睡眠次数等。
 class StatisticsPage extends StatelessWidget {
   const StatisticsPage({super.key});
 
@@ -1074,6 +1095,11 @@ class StatisticsPage extends StatelessWidget {
   }
 }
 
+/// 设置页面
+///
+/// 包含通用设置（通知提醒、主题设置、语言设置）、
+/// 数据管理（数据备份、数据恢复、清除所有数据）、
+/// 关于信息（关于芽芽日记、隐私政策、用户协议）。
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
 

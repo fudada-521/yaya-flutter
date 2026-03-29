@@ -1,5 +1,11 @@
 import 'base_record.dart';
 
+/// 换尿布记录数据模型
+///
+/// 记录宝宝换尿布的时间、类型和状态。
+/// 类型（type）：wet-小便，dirty-大便，mixed-混合
+/// 状态（status）：normal-正常，loose-稀便，hard-硬便，blood-带血
+/// 提供健康状态判断：healthy（健康）、warning（警告）、danger（危险）
 class DiaperRecord extends BaseRecord {
   final DateTime changeTime;
   final String type; // 'wet', 'dirty', 'mixed'

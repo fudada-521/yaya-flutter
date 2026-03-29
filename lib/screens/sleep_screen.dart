@@ -7,6 +7,11 @@ import 'record_bottom_sheet_helper.dart';
 import '../widgets/records/records.dart';
 import '../widgets/empty_baby_card.dart';
 
+/// 睡眠记录页面
+///
+/// 记录宝宝的睡眠时间、结束时间（可选）和睡眠质量评分（1-5分）。
+/// 支持午睡和夜间睡眠两种快速记录。
+/// 显示今日睡眠统计和睡眠记录列表。
 class SleepScreen extends StatefulWidget {
   const SleepScreen({super.key});
 

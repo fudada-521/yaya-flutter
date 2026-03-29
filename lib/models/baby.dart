@@ -1,5 +1,9 @@
 import 'package:uuid/uuid.dart';
 
+/// 宝宝档案数据模型
+///
+/// 用于存储宝宝的基本信息，包括姓名、性别、出生日期等。
+/// 支持计算宝宝年龄，提供天数和月份计算。
 class Baby {
   final String id;
   final String name;
@@ -100,11 +104,18 @@ class Baby {
   }
 }
 
+/// 宝宝列表数据模型
+///
+/// 用于管理多个宝宝档案的容器类，
+/// 提供当前选中宝宝和宝宝数量的便捷访问。
 class BabyList {
   final List<Baby> babies;
 
   BabyList({required this.babies});
 
+  /// 获取当前选中的宝宝（列表中的第一个）
   Baby? get currentBaby => babies.isNotEmpty ? babies.first : null;
+
+  /// 获取宝宝数量
   int get count => babies.length;
 }

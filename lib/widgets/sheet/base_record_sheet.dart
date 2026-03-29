@@ -3,6 +3,18 @@ import 'package:provider/provider.dart';
 import '../../providers/baby_provider.dart';
 import 'components/components.dart';
 
+/// 记录表单基类（模板方法模式）
+///
+/// 定义记录表单的通用结构和流程：
+/// - 检查宝宝是否存在
+/// - 显示表单头部和把手
+/// - 构建表单内容（子类实现）
+/// - 保存记录（子类实现）
+///
+/// 子类需要实现：
+/// - createInitialState: 创建初始状态
+/// - buildForm: 构建表单内容
+/// - saveRecord: 保存记录
 abstract class BaseRecordSheet<T> extends StatefulWidget {
   final String title;
   final String? subtitle;

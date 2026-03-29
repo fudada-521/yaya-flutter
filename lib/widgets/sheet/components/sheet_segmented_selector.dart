@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+/// 底部表单分段选择器组件
+///
+/// Row 布局的水平分段选择器，每项等宽。
+/// 选中状态有颜色和边框区分，支持图标展示。
 class SheetSegmentedSelector extends StatelessWidget {
   final String label;
   final List<SheetSegmentOption> options;
@@ -88,6 +92,10 @@ class SheetSegmentedSelector extends StatelessWidget {
   }
 }
 
+/// 分段选项数据模型
+///
+/// 用于 SheetSegmentedSelector 组件的选项配置，
+/// 包含值、标签、图标和颜色。
 class SheetSegmentOption {
   final String value;
   final String label;

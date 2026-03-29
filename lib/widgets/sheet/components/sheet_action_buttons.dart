@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+/// 底部表单操作按钮组组件
+///
+/// 取消和保存两个按钮的水平排列，
+/// 保存按钮支持加载状态显示。
 class SheetActionButtons extends StatelessWidget {
   final VoidCallback onCancel;
   final VoidCallback onSave;

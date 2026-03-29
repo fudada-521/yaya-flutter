@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+/// 快速记录区域组件
+///
+/// 显示多个快速记录按钮的卡片区域，
+/// 用于快速添加常用记录（如母乳亲喂、奶粉、尿布类型等）。
 class QuickRecordArea extends StatelessWidget {
   final Color primaryColor;
   final List<QuickRecordButton> buttons;
@@ -84,6 +88,10 @@ class QuickRecordArea extends StatelessWidget {
   }
 }
 
+/// 快速记录按钮数据模型
+///
+/// 包含标签、图标、颜色和点击回调，
+/// 用于 QuickRecordArea 组件展示多个快速按钮。
 class QuickRecordButton {
   final String label;
   final IconData icon;

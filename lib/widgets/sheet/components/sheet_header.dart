@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+/// 底部表单头部组件
+///
+/// 显示表单的标题和副标题，
+/// 用于底部弹窗中标识当前操作的类型。
 class SheetHeader extends StatelessWidget {
   final String title;
   final String? subtitle;

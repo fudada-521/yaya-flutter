@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+/// 底部表单文本输入框组件
+///
+/// 统一的表单文本输入框样式，包含标签、提示文字、后缀单位。
+/// 支持单行和多行输入。
 class SheetTextField extends StatelessWidget {
   final TextEditingController controller;
   final String label;

@@ -1,8 +1,10 @@
 import 'package:uuid/uuid.dart';
 
-/// Base class for all record types.
-/// Provides common fields: id, babyId, createdAt
-/// and shared serialization logic.
+/// 记录模型基类
+///
+/// 所有记录类型（喂养、睡眠、尿布、成长）都继承自此类。
+/// 提供通用字段：id（唯一标识）、babyId（关联宝宝ID）、createdAt（创建时间）
+/// 以及共享的序列化逻辑。
 abstract class BaseRecord {
   final String id;
   final String babyId;

@@ -1,5 +1,10 @@
 import 'base_record.dart';
 
+/// 成长记录数据模型
+///
+/// 记录宝宝的身高（cm）、体重（kg）和头围（cm）。
+/// 支持WHO标准生长曲线百分位计算，
+/// 提供成长状态判断：normal（正常）、low（偏低）、high（偏高）。
 class GrowthRecord extends BaseRecord {
   final DateTime recordDate;
   final double? height; // cm

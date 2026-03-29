@@ -1,5 +1,10 @@
 import 'base_record.dart';
 
+/// 睡眠记录数据模型
+///
+/// 记录宝宝睡眠开始时间、结束时间（可选）和睡眠质量评分（1-5分）。
+/// 自动计算睡眠时长，并提供睡眠类型判断（上午小睡/下午小睡/晚上睡眠/夜间睡眠）。
+/// 睡眠质量评分：1-很差，2-较差，3-一般，4-良好，5-优秀。
 class SleepRecord extends BaseRecord {
   final DateTime startTime;
   final DateTime? endTime;

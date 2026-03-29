@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+/// 底部表单日期时间选择器组件
+///
+/// 点击弹出日期选择器（可选时间选择），
+/// 显示格式化为"yyyy年MM月dd日 HH:mm"。
 class SheetDatePicker extends StatelessWidget {
   final String label;
   final DateTime selectedDateTime;

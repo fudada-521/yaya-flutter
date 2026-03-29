@@ -6,6 +6,10 @@ import '../../providers/baby_provider.dart';
 import 'base_record_sheet.dart';
 import 'components/components.dart';
 
+/// 成长记录表单组件（策略模式）
+///
+/// 支持添加和编辑成长记录，
+/// 包含测量日期、体重、身高、头围、备注等字段。
 class GrowthRecordSheet extends BaseRecordSheet<GrowthRecordState> {
   final GrowthRecord? recordToEdit;
 
@@ -96,6 +100,10 @@ class GrowthRecordSheet extends BaseRecordSheet<GrowthRecordState> {
   }
 }
 
+/// 成长记录表单状态
+///
+/// 存储成长记录表单的临时数据，
+/// 包括测量日期、体重、身高、头围和备注。
 class GrowthRecordState {
   DateTime recordDate;
   TextEditingController weightController;
@@ -126,6 +134,9 @@ class GrowthRecordState {
   }
 }
 
+/// 成长测量日期选择器组件
+///
+/// 只选择日期（不选择时间）的日期选择器。
 class _GrowthDatePicker extends StatelessWidget {
   final DateTime selectedDate;
   final ValueChanged<DateTime> onChanged;

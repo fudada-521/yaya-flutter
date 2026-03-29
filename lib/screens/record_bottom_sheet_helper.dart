@@ -10,6 +10,11 @@ import '../providers/records_provider.dart';
 import '../widgets/sheet/sheets.dart';
 import '../widgets/sheet/components/components.dart';
 
+/// 记录底部弹窗辅助类（工厂模式）
+///
+/// 提供统一的入口来显示各种记录类型的添加/编辑底部弹窗。
+/// 包含喂养、睡眠、尿布、成长记录的添加和编辑方法，
+/// 以及宝宝信息添加、快速成长记录和删除确认等辅助方法。
 class RecordBottomSheetHelper {
   // ==================== 检查宝宝是否存在 ====================
 

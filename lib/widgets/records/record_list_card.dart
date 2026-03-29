@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+/// 记录列表卡片组件
+///
+/// 展示单条记录的卡片，包含图标、标题、时间、备注，
+/// 支持右上角 PopupMenu 操作菜单（编辑/删除）。
 class RecordListCard extends StatelessWidget {
   final String title;
   final String? subtitle;

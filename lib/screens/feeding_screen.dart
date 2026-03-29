@@ -7,6 +7,11 @@ import 'record_bottom_sheet_helper.dart';
 import '../widgets/records/records.dart';
 import '../widgets/empty_baby_card.dart';
 
+/// 喂养记录页面
+///
+/// 支持四种喂养类型：母乳亲喂（粉色）、母乳瓶喂（玫红）、奶粉（橙色）、辅食（绿色）。
+/// 显示今日喂养统计、快速记录区、喂养记录列表。
+/// 可通过底部悬浮按钮添加新记录。
 class FeedingScreen extends StatefulWidget {
   const FeedingScreen({super.key});
 

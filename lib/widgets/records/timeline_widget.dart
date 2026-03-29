@@ -5,12 +5,21 @@ import '../../models/sleep_record.dart';
 import '../../models/diaper_record.dart';
 import '../../models/growth_record.dart';
 
+/// 时间轴记录项辅助类
+///
+/// 包含记录数据和是否为最后一项的标记，
+/// 用于时间轴连续连线的渲染。
 class _RecordWithLast {
   final dynamic record;
   final bool isLast;
   _RecordWithLast({required this.record, required this.isLast});
 }
 
+/// 记录时间轴组件
+///
+/// 展示记录列表的时间轴视图，左侧为时间线节点和连线，
+/// 右侧为日期时间和记录卡片。支持自然语言日期显示（今天/昨天/周几/具体日期）
+/// 和相对时间显示（5分钟前、2小时前）。
 class TimelineWidget extends StatelessWidget {
   final List<dynamic> records;
   final Function(dynamic record) onRecordTap;

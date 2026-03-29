@@ -6,6 +6,10 @@ import '../../providers/baby_provider.dart';
 import 'base_record_sheet.dart';
 import 'components/components.dart';
 
+/// 喂养记录表单组件（策略模式）
+///
+/// 支持添加和编辑喂养记录，
+/// 包含喂养时间、类型、方式（母乳亲喂）、奶量、备注等字段。
 class FeedingRecordSheet extends BaseRecordSheet<FeedingRecordState> {
   final FeedingRecord? recordToEdit;
 
@@ -112,6 +116,10 @@ class FeedingRecordSheet extends BaseRecordSheet<FeedingRecordState> {
   }
 }
 
+/// 喂养记录表单状态
+///
+/// 存储喂养记录表单的临时数据，
+/// 包括喂养时间、类型、方式、时长、奶量和备注。
 class FeedingRecordState {
   DateTime feedTime;
   String type;
@@ -143,6 +151,9 @@ class FeedingRecordState {
   }
 }
 
+/// 母乳亲喂时长选择器组件
+///
+/// 预设时长选项（5m-60m），用于选择母乳亲喂的时长。
 class _DurationSelector extends StatelessWidget {
   final int? selectedDuration;
   final ValueChanged<int?> onChanged;
