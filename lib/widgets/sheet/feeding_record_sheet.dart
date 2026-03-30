@@ -249,7 +249,7 @@ class _BreastFeedingDurationSelector extends StatefulWidget {
   final FeedingRecordState state;
   final StateSetter onStateChanged;
 
-  const _BreastFeedingDurationSelector({haolema
+  const _BreastFeedingDurationSelector({
     required this.state,
     required this.onStateChanged,
   });
@@ -268,17 +268,26 @@ class _BreastFeedingDurationSelectorState extends State<_BreastFeedingDurationSe
   }
 
   void _startTimer(String side) {
+    // 取消并清理旧定时器
     _timer?.cancel();
-    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+    _timer = null;
+
+    // 创建一个新的定时器
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      // 检查这个定时器是否还是当前活跃的定时器
+      // 如果不是（已被替换），则不再执行
+      if (_timer != timer) return;
+
       widget.onStateChanged(() {
-        widget.state.elapsedSeconds++;
-        if (widget.state.activeSide == 'left') {
+        if (side == 'left') {
           widget.state.leftElapsedSeconds++;
-        } else if (widget.state.activeSide == 'right') {
+        } else if (side == 'right') {
           widget.state.rightElapsedSeconds++;
         }
       });
     });
+
+    // 更新状态
     widget.onStateChanged(() {
       widget.state.isTimerRunning = true;
       widget.state.activeSide = side;
@@ -286,22 +295,8 @@ class _BreastFeedingDurationSelectorState extends State<_BreastFeedingDurationSe
   }
 
   void _switchSide(String newSide) {
-    // 停止当前计时
-    _timer?.cancel();
-    _timer = null;
-    widget.onStateChanged(() {
-      widget.state.isTimerRunning = false;
-      // 将当前计时累加到对应侧
-      if (widget.state.activeSide == 'left') {
-        widget.state.leftElapsedSeconds = 0;
-      } else if (widget.state.activeSide == 'right') {
-        widget.state.rightElapsedSeconds = 0;
-      }
-      widget.state.activeSide = newSide;
-      widget.state.elapsedSeconds = 0;
-      // 开始新的计时
-      _startTimer(newSide);
-    });
+    // 启动新的计时
+    _startTimer(newSide);
   }
 
   void _pauseTimer() {
@@ -459,18 +454,6 @@ class _BreastFeedingDurationSelectorState extends State<_BreastFeedingDurationSe
 
   /// 计时模式 UI
   Widget _buildTimerMode() {
-    // 计算左侧实际计时（包含当前正在计时的）
-    int leftTotalSeconds = widget.state.leftElapsedSeconds;
-    if (widget.state.activeSide == 'left') {
-      leftTotalSeconds += widget.state.elapsedSeconds;
-    }
-
-    // 计算右侧实际计时（包含当前正在计时的）
-    int rightTotalSeconds = widget.state.rightElapsedSeconds;
-    if (widget.state.activeSide == 'right') {
-      rightTotalSeconds += widget.state.elapsedSeconds;
-    }
-
     return Column(
       children: [
         // 左侧/右侧切换（按钮上显示带秒数的时间）
@@ -531,7 +514,7 @@ class _BreastFeedingDurationSelectorState extends State<_BreastFeedingDurationSe
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        _formatDuration(leftTotalSeconds),
+                        _formatDuration(widget.state.leftElapsedSeconds),
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -599,7 +582,7 @@ class _BreastFeedingDurationSelectorState extends State<_BreastFeedingDurationSe
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        _formatDuration(rightTotalSeconds),
+                        _formatDuration(widget.state.rightElapsedSeconds),
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -692,38 +675,6 @@ class _BreastFeedingDurationSelectorState extends State<_BreastFeedingDurationSe
               ),
               const SizedBox(width: 12),
             ],
-
-            // 停止并保存按钮
-            Expanded(
-              flex: 2,
-              child: GestureDetector(
-                onTap: _stopAndSave,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  decoration: BoxDecoration(
-                    color: Colors.green[400],
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Center(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.check, color: Colors.white, size: 18),
-                        SizedBox(width: 4),
-                        Text(
-                          '停止并保存',
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
           ],
         ),
       ],
