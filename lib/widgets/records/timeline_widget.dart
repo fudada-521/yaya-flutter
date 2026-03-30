@@ -274,8 +274,13 @@ class TimelineWidget extends StatelessWidget {
     if (record is FeedingRecord) {
       final parts = <String>[];
       if (record.amount != null) parts.add('${record.amount}ml');
-      if (record.methodDisplayName.isNotEmpty) parts.add(record.methodDisplayName);
-      if (record.durationDisplayName.isNotEmpty) parts.add(record.durationDisplayName);
+      // 母乳亲喂显示方式（如"左右"、"左侧"、"混合"）
+      if (record.type == 'breast') {
+        final methodDisplay = record.breastMethodDisplay;
+        if (methodDisplay.isNotEmpty) parts.add(methodDisplay);
+        final summary = record.durationSummary;
+        if (summary.isNotEmpty) parts.add(summary);
+      }
       return parts.join(' | ');
     }
     if (record is SleepRecord) {

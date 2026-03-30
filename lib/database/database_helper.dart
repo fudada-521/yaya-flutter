@@ -15,6 +15,7 @@ import '../models/growth_record.dart';
 /// 数据库版本管理：
 /// - v1: 初始版本
 /// - v2: 添加 feeding_records 表的 duration 列
+/// - v3: 添加左右侧时长列 left_duration, right_duration, mixed_duration
 ///
 /// 支持的表：babies、feeding_records、sleep_records、diaper_records、growth_records
 class DatabaseHelper {
@@ -57,7 +58,7 @@ class DatabaseHelper {
     // 移动端使用默认的 sqflite
     return await openDatabase(
       path,
-      version: 2,
+      version: 3,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -65,9 +66,21 @@ class DatabaseHelper {
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     if (oldVersion < 2) {
-      // 添加 duration 列到喂养记录表
+      // v2: 添加 duration 列到喂养记录表
       await db.execute('''
         ALTER TABLE feeding_records ADD COLUMN duration INTEGER
+      ''');
+    }
+    if (oldVersion < 3) {
+      // v3: 添加左右侧时长列
+      await db.execute('''
+        ALTER TABLE feeding_records ADD COLUMN left_duration INTEGER
+      ''');
+      await db.execute('''
+        ALTER TABLE feeding_records ADD COLUMN right_duration INTEGER
+      ''');
+      await db.execute('''
+        ALTER TABLE feeding_records ADD COLUMN mixed_duration INTEGER
       ''');
     }
   }
@@ -99,6 +112,9 @@ class DatabaseHelper {
         type TEXT NOT NULL,
         method TEXT,
         duration INTEGER,
+        left_duration INTEGER,
+        right_duration INTEGER,
+        mixed_duration INTEGER,
         notes TEXT,
         createdAt TEXT NOT NULL,
         FOREIGN KEY (babyId) REFERENCES babies (id) ON DELETE CASCADE
