@@ -15,7 +15,9 @@ class RecordsPage extends StatelessWidget {
       crossAxisSpacing: 12,
       mainAxisSpacing: 12,
       padding: const EdgeInsets.all(16),
-      childAspectRatio: 1.1, // 调整卡片宽高比
+      childAspectRatio: 1.0, // 调整为更方的卡片
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(), // 外部滚动时禁用
       children: [
         _buildRecordCategoryCard(
           context,
@@ -78,21 +80,22 @@ class RecordsPage extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                padding: const EdgeInsets.all(14),
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: color.withAlpha(25),
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(14),
                 ),
-                child: Icon(icon, color: color, size: 32),
+                child: Icon(icon, color: color, size: 28),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
               Text(
                 title,
                 style: const TextStyle(
-                  fontSize: 15,
+                  fontSize: 14,
                   fontWeight: FontWeight.w600,
                   color: Color(0xFF2D2D2D),
                 ),
@@ -101,7 +104,7 @@ class RecordsPage extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 subtitle,
-                style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                style: TextStyle(fontSize: 11, color: Colors.grey[500]),
                 textAlign: TextAlign.center,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
