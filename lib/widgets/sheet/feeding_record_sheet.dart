@@ -463,8 +463,8 @@ class _BreastFeedingDurationSelectorState extends State<_BreastFeedingDurationSe
               child: GestureDetector(
                 onTap: () {
                   if (widget.state.isTimerRunning && widget.state.activeSide == 'left') {
-                    // 已经在计时左侧，切换到右侧
-                    _switchSide('right');
+                    // 点击当前激活的左侧，暂停
+                    _pauseTimer();
                   } else if (widget.state.isTimerRunning && widget.state.activeSide == 'right') {
                     // 右侧在计时，切换到左侧
                     _switchSide('left');
@@ -493,11 +493,13 @@ class _BreastFeedingDurationSelectorState extends State<_BreastFeedingDurationSe
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(
-                            Icons.circle,
-                            size: 12,
+                            widget.state.isTimerRunning && widget.state.activeSide == 'left'
+                                ? Icons.pause_circle_filled
+                                : (widget.state.leftElapsedSeconds > 0 ? Icons.play_circle_filled : Icons.circle),
+                            size: 16,
                             color: widget.state.activeSide == 'left'
                                 ? const Color(0xFFF48FB1)
-                                : Colors.transparent,
+                                : Colors.grey[400],
                           ),
                           const SizedBox(width: 4),
                           Text(
@@ -533,11 +535,14 @@ class _BreastFeedingDurationSelectorState extends State<_BreastFeedingDurationSe
             Expanded(
               child: GestureDetector(
                 onTap: () {
-                  if (widget.state.activeSide == 'right' && widget.state.isTimerRunning) {
-                    _switchSide('left');
-                  } else if (widget.state.activeSide == 'left' && widget.state.isTimerRunning) {
+                  if (widget.state.isTimerRunning && widget.state.activeSide == 'right') {
+                    // 点击当前激活的右侧，暂停
+                    _pauseTimer();
+                  } else if (widget.state.isTimerRunning && widget.state.activeSide == 'left') {
+                    // 左侧在计时，切换到右侧
                     _switchSide('right');
                   } else if (!widget.state.isTimerRunning) {
+                    // 没有在计时，开始右侧计时
                     _startTimer('right');
                   }
                 },
@@ -561,11 +566,13 @@ class _BreastFeedingDurationSelectorState extends State<_BreastFeedingDurationSe
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(
-                            Icons.circle,
-                            size: 12,
+                            widget.state.isTimerRunning && widget.state.activeSide == 'right'
+                                ? Icons.pause_circle_filled
+                                : (widget.state.rightElapsedSeconds > 0 ? Icons.play_circle_filled : Icons.circle),
+                            size: 16,
                             color: widget.state.activeSide == 'right'
                                 ? const Color(0xFFF48FB1)
-                                : Colors.transparent,
+                                : Colors.grey[400],
                           ),
                           const SizedBox(width: 4),
                           Text(
@@ -601,82 +608,29 @@ class _BreastFeedingDurationSelectorState extends State<_BreastFeedingDurationSe
         ),
         const SizedBox(height: 12),
 
-        // 提示文字
-        if (widget.state.activeSide != null && widget.state.isTimerRunning) ...[
-          Text(
-            '点击另一侧切换计时',
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey[500],
+        // 重置按钮
+        if (widget.state.leftElapsedSeconds > 0 || widget.state.rightElapsedSeconds > 0) ...[
+          GestureDetector(
+            onTap: _resetTimer,
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              decoration: BoxDecoration(
+                color: Colors.grey[100],
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Center(
+                child: Text(
+                  '重置',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey[600],
+                  ),
+                ),
+              ),
             ),
           ),
-          const SizedBox(height: 12),
         ],
-
-        // 控制按钮
-        Row(
-          children: [
-            // 重置按钮
-            if (widget.state.leftElapsedSeconds > 0 || widget.state.rightElapsedSeconds > 0 || widget.state.elapsedSeconds > 0) ...[
-              Expanded(
-                child: GestureDetector(
-                  onTap: _resetTimer,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[100],
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Center(
-                      child: Text(
-                        '重置',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.grey[600],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-            ],
-
-            // 暂停/继续按钮
-            if (widget.state.isTimerRunning || widget.state.leftElapsedSeconds > 0 || widget.state.rightElapsedSeconds > 0) ...[
-              Expanded(
-                child: GestureDetector(
-                  onTap: widget.state.isTimerRunning ? _pauseTimer : () {
-                    if (widget.state.activeSide != null) {
-                      _startTimer(widget.state.activeSide!);
-                    }
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    decoration: BoxDecoration(
-                      color: widget.state.isTimerRunning
-                          ? Colors.orange[400]
-                          : const Color(0xFFF48FB1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Center(
-                      child: Text(
-                        widget.state.isTimerRunning ? '暂停' : '继续',
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-            ],
-          ],
-        ),
       ],
     );
   }
