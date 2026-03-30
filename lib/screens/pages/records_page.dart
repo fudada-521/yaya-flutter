@@ -10,10 +10,13 @@ class RecordsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
+    return GridView.count(
+      crossAxisCount: 2, // 两列布局
+      crossAxisSpacing: 12,
+      mainAxisSpacing: 12,
       padding: const EdgeInsets.all(16),
+      childAspectRatio: 1.1, // 调整卡片宽高比
       children: [
-        const SizedBox(height: 8),
         _buildRecordCategoryCard(
           context,
           icon: Icons.restaurant,
@@ -22,7 +25,6 @@ class RecordsPage extends StatelessWidget {
           color: const Color(0xFFFF8A65),
           onTap: () => Navigator.pushNamed(context, '/feeding'),
         ),
-        const SizedBox(height: 12),
         _buildRecordCategoryCard(
           context,
           icon: Icons.bedtime,
@@ -31,7 +33,6 @@ class RecordsPage extends StatelessWidget {
           color: const Color(0xFF64B5F6),
           onTap: () => Navigator.pushNamed(context, '/sleep'),
         ),
-        const SizedBox(height: 12),
         _buildRecordCategoryCard(
           context,
           icon: Icons.baby_changing_station,
@@ -40,7 +41,6 @@ class RecordsPage extends StatelessWidget {
           color: const Color(0xFF81C784),
           onTap: () => Navigator.pushNamed(context, '/diaper'),
         ),
-        const SizedBox(height: 12),
         _buildRecordCategoryCard(
           context,
           icon: Icons.trending_up,
@@ -77,48 +77,34 @@ class RecordsPage extends StatelessWidget {
         ),
         child: Padding(
           padding: const EdgeInsets.all(16),
-          child: Row(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
                   color: color.withAlpha(25),
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(16),
                 ),
-                child: Icon(icon, color: color, size: 28),
+                child: Icon(icon, color: color, size: 32),
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF2D2D2D),
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      subtitle,
-                      style: TextStyle(fontSize: 13, color: Colors.grey[500]),
-                    ),
-                  ],
+              const SizedBox(height: 12),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF2D2D2D),
                 ),
+                textAlign: TextAlign.center,
               ),
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.grey[100],
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(
-                  Icons.arrow_forward_ios,
-                  size: 16,
-                  color: Colors.grey[400],
-                ),
+              const SizedBox(height: 4),
+              Text(
+                subtitle,
+                style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),

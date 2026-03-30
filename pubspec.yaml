@@ -56,6 +56,11 @@ dependencies:
   shared_preferences: ^2.2.2
   uuid: ^4.2.1
 
+  # 文件分享和选择
+  share_plus: ^10.0.0
+  file_picker: ^8.0.0
+  path_provider: ^2.1.2
+
 # 开发依赖
 dev_dependencies:
   flutter_test:
