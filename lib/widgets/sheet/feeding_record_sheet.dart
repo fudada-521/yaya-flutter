@@ -177,7 +177,7 @@ class FeedingRecordState {
     this.leftDuration,
     this.rightDuration,
     this.mixedDuration,
-    this.isTimerMode = false,
+    this.isTimerMode = true,
     this.isTimerRunning = false,
     this.activeSide,
     this.elapsedSeconds = 0,
@@ -356,42 +356,6 @@ class _BreastFeedingDurationSelectorState extends State<_BreastFeedingDurationSe
             Expanded(
               child: GestureDetector(
                 onTap: () {
-                  _resetTimer();
-                  widget.onStateChanged(() {
-                    widget.state.isTimerMode = false;
-                  });
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  decoration: BoxDecoration(
-                    color: !widget.state.isTimerMode
-                        ? const Color(0xFFF48FB1).withAlpha(25)
-                        : Colors.transparent,
-                    borderRadius: const BorderRadius.horizontal(left: Radius.circular(10)),
-                    border: Border.all(
-                      color: !widget.state.isTimerMode
-                          ? const Color(0xFFF48FB1)
-                          : Colors.grey[300]!,
-                    ),
-                  ),
-                  child: Center(
-                    child: Text(
-                      '手动输入',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: !widget.state.isTimerMode ? FontWeight.w600 : FontWeight.w500,
-                        color: !widget.state.isTimerMode
-                            ? const Color(0xFFF48FB1)
-                            : Colors.grey[500],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            Expanded(
-              child: GestureDetector(
-                onTap: () {
                   widget.onStateChanged(() {
                     widget.state.isTimerMode = true;
                   });
@@ -402,7 +366,7 @@ class _BreastFeedingDurationSelectorState extends State<_BreastFeedingDurationSe
                     color: widget.state.isTimerMode
                         ? const Color(0xFFF48FB1).withAlpha(25)
                         : Colors.transparent,
-                    borderRadius: const BorderRadius.horizontal(right: Radius.circular(10)),
+                    borderRadius: const BorderRadius.horizontal(left: Radius.circular(10)),
                     border: Border.all(
                       color: widget.state.isTimerMode
                           ? const Color(0xFFF48FB1)
@@ -437,6 +401,55 @@ class _BreastFeedingDurationSelectorState extends State<_BreastFeedingDurationSe
                 ),
               ),
             ),
+            Expanded(
+              child: GestureDetector(
+                onTap: () {
+                  _resetTimer();
+                  widget.onStateChanged(() {
+                    widget.state.isTimerMode = false;
+                  });
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  decoration: BoxDecoration(
+                    color: !widget.state.isTimerMode
+                        ? const Color(0xFFF48FB1).withAlpha(25)
+                        : Colors.transparent,
+                    borderRadius: const BorderRadius.horizontal(right: Radius.circular(10)),
+                    border: Border.all(
+                      color: !widget.state.isTimerMode
+                          ? const Color(0xFFF48FB1)
+                          : Colors.grey[300]!,
+                    ),
+                  ),
+                  child: Center(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.edit,
+                          size: 16,
+                          color: !widget.state.isTimerMode
+                              ? const Color(0xFFF48FB1)
+                              : Colors.grey[500],
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '手动输入',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: !widget.state.isTimerMode ? FontWeight.w600 : FontWeight.w500,
+                            color: !widget.state.isTimerMode
+                                ? const Color(0xFFF48FB1)
+                                : Colors.grey[500],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
         const SizedBox(height: 16),
@@ -456,151 +469,142 @@ class _BreastFeedingDurationSelectorState extends State<_BreastFeedingDurationSe
   Widget _buildTimerMode() {
     return Column(
       children: [
-        // 左侧/右侧切换（按钮上显示带秒数的时间）
+        // 左侧/右侧圆形卡片
         Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Expanded(
-              child: GestureDetector(
-                onTap: () {
-                  if (widget.state.isTimerRunning && widget.state.activeSide == 'left') {
-                    // 点击当前激活的左侧，暂停
-                    _pauseTimer();
-                  } else if (widget.state.isTimerRunning && widget.state.activeSide == 'right') {
-                    // 右侧在计时，切换到左侧
-                    _switchSide('left');
-                  } else if (!widget.state.isTimerRunning) {
-                    // 没有在计时，开始左侧计时
-                    _startTimer('left');
-                  }
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  decoration: BoxDecoration(
-                    color: widget.state.activeSide == 'left'
-                        ? const Color(0xFFF48FB1).withAlpha(25)
-                        : Colors.grey[50],
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
+            // 左侧圆形卡片
+            GestureDetector(
+              onTap: () {
+                if (widget.state.isTimerRunning && widget.state.activeSide == 'left') {
+                  _pauseTimer();
+                } else if (widget.state.isTimerRunning && widget.state.activeSide == 'right') {
+                  _switchSide('left');
+                } else if (!widget.state.isTimerRunning) {
+                  _startTimer('left');
+                }
+              },
+              child: Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: widget.state.activeSide == 'left'
+                      ? const Color(0xFFF48FB1).withAlpha(25)
+                      : Colors.grey[50],
+                  border: Border.all(
+                    color: widget.state.isTimerRunning && widget.state.activeSide == 'left'
+                        ? const Color(0xFFF48FB1)
+                        : (widget.state.isTimerRunning && widget.state.activeSide == 'right'
+                            ? Colors.grey[400]!
+                            : Colors.grey[300]!),
+                    width: widget.state.activeSide == 'left' ? 2 : 1,
+                  ),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      '左侧',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        color: widget.state.activeSide == 'left'
+                            ? const Color(0xFFF48FB1)
+                            : Colors.grey[400],
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Icon(
+                      widget.state.isTimerRunning && widget.state.activeSide == 'left'
+                          ? Icons.pause
+                          : Icons.play_arrow,
+                      size: 40,
                       color: widget.state.activeSide == 'left'
                           ? const Color(0xFFF48FB1)
-                          : Colors.grey[300]!,
-                      width: widget.state.activeSide == 'left' ? 2 : 1,
+                          : Colors.grey[400],
                     ),
-                  ),
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            widget.state.isTimerRunning && widget.state.activeSide == 'left'
-                                ? Icons.pause_circle_filled
-                                : (widget.state.leftElapsedSeconds > 0 ? Icons.play_circle_filled : Icons.circle),
-                            size: 16,
-                            color: widget.state.activeSide == 'left'
-                                ? const Color(0xFFF48FB1)
-                                : Colors.grey[400],
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            '左侧',
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w600,
-                              color: widget.state.activeSide == 'left'
-                                  ? const Color(0xFFF48FB1)
-                                  : Colors.grey[600],
-                            ),
-                          ),
-                        ],
+                    const SizedBox(height: 4),
+                    Text(
+                      _formatDurationMmss(widget.state.leftElapsedSeconds),
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: widget.state.activeSide == 'left'
+                            ? const Color(0xFFF48FB1)
+                            : Colors.grey[600],
+                        fontFamily: 'monospace',
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        _formatDuration(widget.state.leftElapsedSeconds),
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: widget.state.activeSide == 'left'
-                              ? const Color(0xFFF48FB1)
-                              : Colors.grey[600],
-                          fontFamily: 'monospace',
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: GestureDetector(
-                onTap: () {
-                  if (widget.state.isTimerRunning && widget.state.activeSide == 'right') {
-                    // 点击当前激活的右侧，暂停
-                    _pauseTimer();
-                  } else if (widget.state.isTimerRunning && widget.state.activeSide == 'left') {
-                    // 左侧在计时，切换到右侧
-                    _switchSide('right');
-                  } else if (!widget.state.isTimerRunning) {
-                    // 没有在计时，开始右侧计时
-                    _startTimer('right');
-                  }
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  decoration: BoxDecoration(
-                    color: widget.state.activeSide == 'right'
-                        ? const Color(0xFFF48FB1).withAlpha(25)
-                        : Colors.grey[50],
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
+            const SizedBox(width: 32),
+            // 右侧圆形卡片
+            GestureDetector(
+              onTap: () {
+                if (widget.state.isTimerRunning && widget.state.activeSide == 'right') {
+                  _pauseTimer();
+                } else if (widget.state.isTimerRunning && widget.state.activeSide == 'left') {
+                  _switchSide('right');
+                } else if (!widget.state.isTimerRunning) {
+                  _startTimer('right');
+                }
+              },
+              child: Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: widget.state.activeSide == 'right'
+                      ? const Color(0xFFF48FB1).withAlpha(25)
+                      : Colors.grey[50],
+                  border: Border.all(
+                    color: widget.state.isTimerRunning && widget.state.activeSide == 'right'
+                        ? const Color(0xFFF48FB1)
+                        : (widget.state.isTimerRunning && widget.state.activeSide == 'left'
+                            ? Colors.grey[400]!
+                            : Colors.grey[300]!),
+                    width: widget.state.activeSide == 'right' ? 2 : 1,
+                  ),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      '右侧',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        color: widget.state.activeSide == 'right'
+                            ? const Color(0xFFF48FB1)
+                            : Colors.grey[400],
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Icon(
+                      widget.state.isTimerRunning && widget.state.activeSide == 'right'
+                          ? Icons.pause
+                          : Icons.play_arrow,
+                      size: 40,
                       color: widget.state.activeSide == 'right'
                           ? const Color(0xFFF48FB1)
-                          : Colors.grey[300]!,
-                      width: widget.state.activeSide == 'right' ? 2 : 1,
+                          : Colors.grey[400],
                     ),
-                  ),
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            widget.state.isTimerRunning && widget.state.activeSide == 'right'
-                                ? Icons.pause_circle_filled
-                                : (widget.state.rightElapsedSeconds > 0 ? Icons.play_circle_filled : Icons.circle),
-                            size: 16,
-                            color: widget.state.activeSide == 'right'
-                                ? const Color(0xFFF48FB1)
-                                : Colors.grey[400],
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            '右侧',
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w600,
-                              color: widget.state.activeSide == 'right'
-                                  ? const Color(0xFFF48FB1)
-                                  : Colors.grey[600],
-                            ),
-                          ),
-                        ],
+                    const SizedBox(height: 4),
+                    Text(
+                      _formatDurationMmss(widget.state.rightElapsedSeconds),
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: widget.state.activeSide == 'right'
+                            ? const Color(0xFFF48FB1)
+                            : Colors.grey[600],
+                        fontFamily: 'monospace',
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        _formatDuration(widget.state.rightElapsedSeconds),
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: widget.state.activeSide == 'right'
-                              ? const Color(0xFFF48FB1)
-                              : Colors.grey[600],
-                          fontFamily: 'monospace',
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -609,51 +613,37 @@ class _BreastFeedingDurationSelectorState extends State<_BreastFeedingDurationSe
         const SizedBox(height: 12),
 
         // 重置按钮
-        if (widget.state.leftElapsedSeconds > 0 || widget.state.rightElapsedSeconds > 0) ...[
-          GestureDetector(
-            onTap: _resetTimer,
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              decoration: BoxDecoration(
-                color: Colors.grey[100],
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Center(
-                child: Text(
-                  '重置',
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.grey[600],
-                  ),
-                ),
+        GestureDetector(
+          onTap: (widget.state.leftElapsedSeconds > 0 || widget.state.rightElapsedSeconds > 0) ? _resetTimer : null,
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+            decoration: BoxDecoration(
+              color: (widget.state.leftElapsedSeconds > 0 || widget.state.rightElapsedSeconds > 0)
+                  ? Colors.grey[100]
+                  : Colors.grey[50],
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              '重置',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: (widget.state.leftElapsedSeconds > 0 || widget.state.rightElapsedSeconds > 0)
+                    ? Colors.grey[600]
+                    : Colors.grey[400],
               ),
             ),
           ),
-        ],
+        ),
       ],
     );
   }
 
-  /// 格式化时长为 mm:ss 或 hh:mm:ss
-  String _formatDuration(int seconds) {
-    if (seconds < 60) {
-      return '${seconds}s';
-    }
+  /// 格式化时长为 mm:ss
+  String _formatDurationMmss(int seconds) {
     final mins = seconds ~/ 60;
     final secs = seconds % 60;
-    if (mins >= 60) {
-      final h = mins ~/ 60;
-      final m = mins % 60;
-      if (secs > 0) {
-        return '${h}h${m}m${secs}s';
-      }
-      return m > 0 ? '${h}h${m}m' : '${h}h';
-    }
-    if (secs > 0) {
-      return '${mins}m${secs}s';
-    }
-    return '${mins}m';
+    return '${mins.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
   }
 
   /// 手动模式 UI
@@ -679,7 +669,7 @@ class _BreastFeedingDurationSelectorState extends State<_BreastFeedingDurationSe
                 },
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 8),
             Expanded(
               child: _buildDurationInput(
                 label: '右侧',
@@ -697,26 +687,26 @@ class _BreastFeedingDurationSelectorState extends State<_BreastFeedingDurationSe
             ),
           ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
 
         // 或分隔符
         Row(
           children: [
-            Expanded(child: Divider(color: Colors.grey[300])),
+            Expanded(child: Divider(color: Colors.grey[300], height: 1)),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
               child: Text(
                 '或',
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: 12,
                   color: Colors.grey[500],
                 ),
               ),
             ),
-            Expanded(child: Divider(color: Colors.grey[300])),
+            Expanded(child: Divider(color: Colors.grey[300], height: 1)),
           ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
 
         // 混合输入
         _buildDurationInput(
@@ -734,33 +724,18 @@ class _BreastFeedingDurationSelectorState extends State<_BreastFeedingDurationSe
             });
           },
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
 
         // 总时长显示
-        if (widget.state.totalDuration > 0) ...[
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: Colors.green[50],
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.timer, size: 18, color: Colors.green[400]),
-                const SizedBox(width: 8),
-                Text(
-                  '总时长：${widget.state.totalDuration} 分钟',
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.green[600],
-                  ),
-                ),
-              ],
+        if (widget.state.totalDuration > 0)
+          Text(
+            '总时长：${widget.state.totalDuration} 分钟',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: Colors.green[600],
             ),
           ),
-        ],
       ],
     );
   }
@@ -776,17 +751,17 @@ class _BreastFeedingDurationSelectorState extends State<_BreastFeedingDurationSe
         Text(
           label,
           style: TextStyle(
-            fontSize: 13,
+            fontSize: 11,
             color: Colors.grey[600],
             fontWeight: FontWeight.w500,
           ),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 4),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
           decoration: BoxDecoration(
             color: Colors.grey[50],
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(8),
             border: Border.all(color: Colors.grey[200]!),
           ),
           child: Row(
@@ -797,14 +772,14 @@ class _BreastFeedingDurationSelectorState extends State<_BreastFeedingDurationSe
                   keyboardType: TextInputType.number,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
-                    fontSize: 16,
+                    fontSize: 14,
                     fontWeight: FontWeight.w600,
                     color: Color(0xFFF48FB1),
                   ),
                   decoration: const InputDecoration(
                     hintText: '0',
                     hintStyle: TextStyle(
-                      fontSize: 14,
+                      fontSize: 13,
                       color: Colors.grey,
                       fontWeight: FontWeight.normal,
                     ),
