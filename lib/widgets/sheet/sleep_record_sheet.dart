@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -188,34 +189,65 @@ class _DateTimeTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: enabled
-          ? () async {
-              final date = await showDatePicker(
+          ? () {
+              DateTime tempDate = dateTime;
+              showCupertinoModalPopup<void>(
                 context: context,
-                initialDate: dateTime,
-                firstDate: DateTime.now().subtract(const Duration(days: 30)),
-                lastDate: DateTime.now(),
-                builder: (context, child) {
-                  return Theme(
-                    data: Theme.of(context).copyWith(
-                      colorScheme: ColorScheme.light(
-                        primary: primaryColor,
-                        onPrimary: Colors.white,
-                        surface: Colors.white,
-                        onSurface: const Color(0xFF2D2D2D),
+                builder: (BuildContext context) {
+                  return Container(
+                    height: 300,
+                    padding: const EdgeInsets.only(top: 6),
+                    margin: EdgeInsets.only(
+                      bottom: MediaQuery.of(context).viewInsets.bottom,
+                    ),
+                    decoration: BoxDecoration(
+                      color: CupertinoColors.systemBackground.resolveFrom(context),
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                    ),
+                    child: SafeArea(
+                      top: false,
+                      child: Column(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                CupertinoButton(
+                                  padding: EdgeInsets.zero,
+                                  onPressed: () => Navigator.pop(context),
+                                  child: Text('取消', style: TextStyle(color: CupertinoColors.systemGrey)),
+                                ),
+                                CupertinoButton(
+                                  padding: EdgeInsets.zero,
+                                  onPressed: () {
+                                    onChanged?.call(tempDate);
+                                    Navigator.pop(context);
+                                  },
+                                  child: Text('完成', style: TextStyle(color: primaryColor)),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const Divider(height: 1),
+                          Expanded(
+                            child: CupertinoDatePicker(
+                              mode: CupertinoDatePickerMode.dateAndTime,
+                              initialDateTime: dateTime,
+                              minimumDate: DateTime.now().subtract(const Duration(days: 30)),
+                              maximumDate: DateTime.now(),
+                              use24hFormat: true,
+                              onDateTimeChanged: (DateTime newDate) {
+                                tempDate = newDate;
+                              },
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    child: child!,
                   );
                 },
               );
-              if (date == null || onChanged == null) return;
-              final time = await showTimePicker(
-                context: context,
-                initialTime: TimeOfDay.fromDateTime(dateTime),
-              );
-              if (time != null) {
-                onChanged!(DateTime(date.year, date.month, date.day, time.hour, time.minute));
-              }
             }
           : null,
       child: Container(

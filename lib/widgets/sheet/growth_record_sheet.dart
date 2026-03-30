@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/growth_record.dart';
@@ -161,29 +162,64 @@ class _GrowthDatePicker extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         GestureDetector(
-          onTap: () async {
-            final date = await showDatePicker(
+          onTap: () {
+            DateTime tempDate = selectedDate;
+            showCupertinoModalPopup<void>(
               context: context,
-              initialDate: selectedDate,
-              firstDate: DateTime.now().subtract(const Duration(days: 365)),
-              lastDate: DateTime.now(),
-              builder: (context, child) {
-                return Theme(
-                  data: Theme.of(context).copyWith(
-                    colorScheme: const ColorScheme.light(
-                      primary: Color(0xFFBA68C8),
-                      onPrimary: Colors.white,
-                      surface: Colors.white,
-                      onSurface: Color(0xFF2D2D2D),
+              builder: (BuildContext context) {
+                return Container(
+                  height: 300,
+                  padding: const EdgeInsets.only(top: 6),
+                  margin: EdgeInsets.only(
+                    bottom: MediaQuery.of(context).viewInsets.bottom,
+                  ),
+                  decoration: BoxDecoration(
+                    color: CupertinoColors.systemBackground.resolveFrom(context),
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                  ),
+                  child: SafeArea(
+                    top: false,
+                    child: Column(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              CupertinoButton(
+                                padding: EdgeInsets.zero,
+                                onPressed: () => Navigator.pop(context),
+                                child: Text('取消', style: TextStyle(color: CupertinoColors.systemGrey)),
+                              ),
+                              CupertinoButton(
+                                padding: EdgeInsets.zero,
+                                onPressed: () {
+                                  onChanged(tempDate);
+                                  Navigator.pop(context);
+                                },
+                                child: const Text('完成', style: TextStyle(color: Color(0xFFBA68C8))),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Divider(height: 1),
+                        Expanded(
+                          child: CupertinoDatePicker(
+                            mode: CupertinoDatePickerMode.date,
+                            initialDateTime: selectedDate,
+                            minimumDate: DateTime.now().subtract(const Duration(days: 365)),
+                            maximumDate: DateTime.now(),
+                            onDateTimeChanged: (DateTime newDate) {
+                              tempDate = newDate;
+                            },
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  child: child!,
                 );
               },
             );
-            if (date != null) {
-              onChanged(date);
-            }
           },
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
