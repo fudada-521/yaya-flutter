@@ -4,6 +4,7 @@ import '../../models/feeding_record.dart';
 import '../../models/sleep_record.dart';
 import '../../models/diaper_record.dart';
 import '../../models/growth_record.dart';
+import '../../models/solid_food_record.dart';
 
 /// 时间轴记录项辅助类
 ///
@@ -235,6 +236,7 @@ class TimelineWidget extends StatelessWidget {
     if (record is SleepRecord) return record.startTime;
     if (record is DiaperRecord) return record.changeTime;
     if (record is GrowthRecord) return record.recordDate;
+    if (record is SolidFoodRecord) return record.mealTime;
     return DateTime.now();
   }
 
@@ -243,6 +245,7 @@ class TimelineWidget extends StatelessWidget {
     if (record is SleepRecord) return Icons.bedtime;
     if (record is DiaperRecord) return Icons.baby_changing_station;
     if (record is GrowthRecord) return Icons.trending_up;
+    if (record is SolidFoodRecord) return Icons.icecream;
     return Icons.circle;
   }
 
@@ -251,6 +254,7 @@ class TimelineWidget extends StatelessWidget {
     if (record is SleepRecord) return const Color(0xFF64B5F6);
     if (record is DiaperRecord) return const Color(0xFF81C784);
     if (record is GrowthRecord) return const Color(0xFFBA68C8);
+    if (record is SolidFoodRecord) return const Color(0xFFFFB74D);
     return Colors.grey;
   }
 
@@ -266,6 +270,9 @@ class TimelineWidget extends StatelessWidget {
     }
     if (record is GrowthRecord) {
       return '成长记录';
+    }
+    if (record is SolidFoodRecord) {
+      return record.foodName ?? '辅食';
     }
     return '';
   }
@@ -295,6 +302,15 @@ class TimelineWidget extends StatelessWidget {
       if (record.height != null) parts.add('${record.height}cm');
       if (record.headCircumference != null) parts.add('头围${record.headCircumference}cm');
       return parts.isEmpty ? '' : parts.join(' | ');
+    }
+    if (record is SolidFoodRecord) {
+      final parts = <String>[];
+      if (record.amount != null) parts.add('${record.amount!.toStringAsFixed(0)}g');
+      parts.add(record.textureDisplayName);
+      if (record.ingredients != null && record.ingredients!.isNotEmpty) {
+        parts.add(record.ingredientsDisplay);
+      }
+      return parts.join(' | ');
     }
     return '';
   }

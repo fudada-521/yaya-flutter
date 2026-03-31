@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 /// 记录分类列表页面
 ///
-/// 显示四大记录类型的分类卡片：
-/// 喂养记录、睡眠记录、换尿布记录、成长记录。
+/// 显示五大记录类型的分类卡片：
+/// 喂养记录、睡眠记录、换尿布记录、成长记录、辅食记录。
 /// 点击可跳转到对应的详细记录页面。
 class RecordsPage extends StatelessWidget {
   const RecordsPage({super.key});
@@ -50,6 +50,14 @@ class RecordsPage extends StatelessWidget {
           subtitle: '记录身高、体重、头围',
           color: const Color(0xFFBA68C8),
           onTap: () => Navigator.pushNamed(context, '/growth'),
+        ),
+        _buildRecordCategoryCard(
+          context,
+          icon: Icons.icecream,
+          title: '辅食记录',
+          subtitle: '记录辅食、食材、质地',
+          color: const Color(0xFFFFB74D),
+          onTap: () => Navigator.pushNamed(context, '/solid-food'),
         ),
       ],
     );

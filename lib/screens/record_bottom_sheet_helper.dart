@@ -5,6 +5,7 @@ import '../models/feeding_record.dart';
 import '../models/sleep_record.dart';
 import '../models/diaper_record.dart';
 import '../models/growth_record.dart';
+import '../models/solid_food_record.dart';
 import '../providers/baby_provider.dart';
 import '../providers/records_provider.dart';
 import '../widgets/sheet/sheets.dart';
@@ -13,7 +14,7 @@ import '../widgets/sheet/components/components.dart';
 /// 记录底部弹窗辅助类（工厂模式）
 ///
 /// 提供统一的入口来显示各种记录类型的添加/编辑底部弹窗。
-/// 包含喂养、睡眠、尿布、成长记录的添加和编辑方法，
+/// 包含喂养、睡眠、尿布、成长、辅食记录的添加和编辑方法，
 /// 以及宝宝信息添加、快速成长记录和删除确认等辅助方法。
 class RecordBottomSheetHelper {
   // ==================== 检查宝宝是否存在 ====================
@@ -118,6 +119,17 @@ class RecordBottomSheetHelper {
 
   static void showEditGrowthRecord(BuildContext context, GrowthRecord record) {
     GrowthRecordSheet(recordToEdit: record).show(context);
+  }
+
+  // ==================== 辅食记录 ====================
+
+  static void showAddSolidFoodRecord(BuildContext context) {
+    if (!_checkBabyExists(context)) return;
+    SolidFoodRecordSheet().show(context);
+  }
+
+  static void showEditSolidFoodRecord(BuildContext context, SolidFoodRecord record) {
+    SolidFoodRecordSheet(recordToEdit: record).show(context);
   }
 
   // 快速成长记录

@@ -6,6 +6,7 @@ import '../models/feeding_record.dart';
 import '../models/sleep_record.dart';
 import '../models/diaper_record.dart';
 import '../models/growth_record.dart';
+import '../models/solid_food_record.dart';
 
 /// 数据库管理单例类
 ///
@@ -16,8 +17,9 @@ import '../models/growth_record.dart';
 /// - v1: 初始版本
 /// - v2: 添加 feeding_records 表的 duration 列
 /// - v3: 添加左右侧时长列 left_duration, right_duration, mixed_duration
+/// - v4: 添加 solid_food_records 表（辅食独立记录）
 ///
-/// 支持的表：babies、feeding_records、sleep_records、diaper_records、growth_records
+/// 支持的表：babies、feeding_records、sleep_records、diaper_records、growth_records、solid_food_records
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
   factory DatabaseHelper() => _instance;
@@ -58,7 +60,7 @@ class DatabaseHelper {
     // 移动端使用默认的 sqflite
     return await openDatabase(
       path,
-      version: 3,
+      version: 4,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -81,6 +83,23 @@ class DatabaseHelper {
       ''');
       await db.execute('''
         ALTER TABLE feeding_records ADD COLUMN mixed_duration INTEGER
+      ''');
+    }
+    if (oldVersion < 4) {
+      // v4: 添加辅食记录表
+      await db.execute('''
+        CREATE TABLE solid_food_records (
+          id TEXT PRIMARY KEY,
+          babyId TEXT NOT NULL,
+          mealTime TEXT NOT NULL,
+          foodName TEXT,
+          amount REAL,
+          texture TEXT,
+          ingredients TEXT,
+          notes TEXT,
+          createdAt TEXT NOT NULL,
+          FOREIGN KEY (babyId) REFERENCES babies (id) ON DELETE CASCADE
+        )
       ''');
     }
   }
@@ -163,6 +182,22 @@ class DatabaseHelper {
         FOREIGN KEY (babyId) REFERENCES babies (id) ON DELETE CASCADE
       )
     ''');
+
+    // 辅食记录表
+    await db.execute('''
+      CREATE TABLE solid_food_records (
+        id TEXT PRIMARY KEY,
+        babyId TEXT NOT NULL,
+        mealTime TEXT NOT NULL,
+        foodName TEXT,
+        amount REAL,
+        texture TEXT,
+        ingredients TEXT,
+        notes TEXT,
+        createdAt TEXT NOT NULL,
+        FOREIGN KEY (babyId) REFERENCES babies (id) ON DELETE CASCADE
+      )
+    ''');
   }
 
   // Baby operations
@@ -194,6 +229,7 @@ class DatabaseHelper {
     await db.delete('sleep_records', where: 'babyId = ?', whereArgs: [babyId]);
     await db.delete('diaper_records', where: 'babyId = ?', whereArgs: [babyId]);
     await db.delete('growth_records', where: 'babyId = ?', whereArgs: [babyId]);
+    await db.delete('solid_food_records', where: 'babyId = ?', whereArgs: [babyId]);
     // 最后删除宝宝本身
     await db.delete('babies', where: 'id = ?', whereArgs: [babyId]);
   }
@@ -205,6 +241,7 @@ class DatabaseHelper {
     await db.delete('sleep_records');
     await db.delete('diaper_records');
     await db.delete('growth_records');
+    await db.delete('solid_food_records');
     await db.delete('babies');
   }
 
@@ -355,6 +392,44 @@ class DatabaseHelper {
     final db = await database;
     await db.delete(
       'growth_records',
+      where: 'id = ?',
+      whereArgs: [recordId],
+    );
+  }
+
+  // Solid food record operations (辅食记录)
+  Future<List<SolidFoodRecord>> getSolidFoodRecords([String? babyId]) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = babyId == null
+        ? await db.query('solid_food_records', orderBy: 'mealTime DESC')
+        : await db.query(
+            'solid_food_records',
+            where: 'babyId = ?',
+            whereArgs: [babyId],
+            orderBy: 'mealTime DESC',
+          );
+    return List.generate(maps.length, (i) => SolidFoodRecord.fromMap(maps[i]));
+  }
+
+  Future<void> insertSolidFoodRecord(SolidFoodRecord record) async {
+    final db = await database;
+    await db.insert('solid_food_records', record.toMap());
+  }
+
+  Future<void> updateSolidFoodRecord(SolidFoodRecord record) async {
+    final db = await database;
+    await db.update(
+      'solid_food_records',
+      record.toMap(),
+      where: 'id = ?',
+      whereArgs: [record.id],
+    );
+  }
+
+  Future<void> deleteSolidFoodRecord(String recordId) async {
+    final db = await database;
+    await db.delete(
+      'solid_food_records',
       where: 'id = ?',
       whereArgs: [recordId],
     );

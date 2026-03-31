@@ -228,6 +228,21 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
             const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _buildQuickRecordItem(
+                  icon: Icons.icecream,
+                  label: '辅食',
+                  color: const Color(0xFFFFB74D),
+                  onTap: () {
+                    Navigator.pop(context);
+                    RecordBottomSheetHelper.showAddSolidFoodRecord(context);
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
           ],
         ),
       ),

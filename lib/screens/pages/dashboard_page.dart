@@ -6,6 +6,7 @@ import '../../models/feeding_record.dart';
 import '../../models/sleep_record.dart';
 import '../../models/diaper_record.dart';
 import '../../models/growth_record.dart';
+import '../../models/solid_food_record.dart';
 import '../../widgets/empty_baby_card.dart';
 import '../../widgets/records/timeline_widget.dart';
 import '../record_bottom_sheet_helper.dart';
@@ -141,6 +142,12 @@ class DashboardPage extends StatelessWidget {
     return Consumer<RecordsProvider>(
       builder: (context, recordsProvider, child) {
         final todayStats = recordsProvider.getTodayStats();
+        final today = DateTime.now();
+        final todayStart = DateTime(today.year, today.month, today.day);
+        final todaySolidFood = recordsProvider.solidFoodRecords
+            .where((r) => r.mealTime.isAfter(todayStart))
+            .toList();
+
         return Container(
           decoration: BoxDecoration(
             color: Colors.white,
@@ -203,6 +210,12 @@ class DashboardPage extends StatelessWidget {
                     '${todayStats['diaperCount']}次',
                     const Color(0xFF81C784),
                     Icons.baby_changing_station,
+                  ),
+                  _buildStatItem(
+                    '辅食',
+                    '${todaySolidFood.length}次',
+                    const Color(0xFFFFB74D),
+                    Icons.icecream,
                   ),
                 ],
               ),
@@ -311,6 +324,8 @@ class DashboardPage extends StatelessWidget {
       RecordBottomSheetHelper.showEditDiaperRecord(context, record);
     } else if (record is GrowthRecord) {
       RecordBottomSheetHelper.showEditGrowthRecord(context, record);
+    } else if (record is SolidFoodRecord) {
+      RecordBottomSheetHelper.showEditSolidFoodRecord(context, record);
     }
   }
 }

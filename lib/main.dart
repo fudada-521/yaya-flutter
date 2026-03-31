@@ -7,6 +7,7 @@ import 'screens/feeding_screen.dart';
 import 'screens/sleep_screen.dart';
 import 'screens/diaper_screen.dart';
 import 'screens/growth_screen.dart';
+import 'screens/solid_food_screen.dart';
 import 'screens/baby_profile_screen.dart';
 import 'providers/baby_provider.dart';
 import 'providers/records_provider.dart';
@@ -60,6 +61,7 @@ class YayaDiaryApp extends StatelessWidget {
           '/sleep': (context) => const SleepScreen(),
           '/diaper': (context) => const DiaperScreen(),
           '/growth': (context) => const GrowthScreen(),
+          '/solid-food': (context) => const SolidFoodScreen(),
           '/baby-profile': (context) => const BabyProfileScreen(),
         },
       ),

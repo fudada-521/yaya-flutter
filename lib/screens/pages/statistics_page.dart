@@ -71,6 +71,12 @@ class StatisticsPage extends StatelessWidget {
           Consumer<RecordsProvider>(
             builder: (context, recordsProvider, child) {
               final todayStats = recordsProvider.getTodayStats();
+              final today = DateTime.now();
+              final todayStart = DateTime(today.year, today.month, today.day);
+              final todaySolidFood = recordsProvider.solidFoodRecords
+                  .where((r) => r.mealTime.isAfter(todayStart))
+                  .toList();
+
               return Column(
                 children: [
                   _buildStatRow(
@@ -89,6 +95,12 @@ class StatisticsPage extends StatelessWidget {
                     '今日换尿布',
                     '${todayStats['diaperCount']}次',
                     const Color(0xFF81C784),
+                  ),
+                  const SizedBox(height: 12),
+                  _buildStatRow(
+                    '今日辅食',
+                    '${todaySolidFood.length}次',
+                    const Color(0xFFFFB74D),
                   ),
                 ],
               );
@@ -204,6 +216,15 @@ class StatisticsPage extends StatelessWidget {
               ),
               _buildTrendItem(
                 context,
+                '辅食',
+                Icons.icecream,
+                const Color(0xFFFFB74D),
+                () {
+                  Navigator.pushNamed(context, '/solid-food');
+                },
+              ),
+              _buildTrendItem(
+                context,
                 '成长',
                 Icons.trending_up,
                 const Color(0xFFBA68C8),
@@ -306,6 +327,8 @@ class StatisticsPage extends StatelessWidget {
               );
               final diaperRecords = recordsProvider.diaperRecords;
               final totalDiaper = diaperRecords.length;
+              final solidFoodRecords = recordsProvider.solidFoodRecords;
+              final totalSolidFood = solidFoodRecords.length;
 
               return Column(
                 children: [
@@ -339,6 +362,12 @@ class StatisticsPage extends StatelessWidget {
                     '累计换尿布次数',
                     '$totalDiaper次',
                     const Color(0xFF81C784),
+                  ),
+                  const SizedBox(height: 10),
+                  _buildDetailStat(
+                    '累计辅食次数',
+                    '$totalSolidFood次',
+                    const Color(0xFFFFB74D),
                   ),
                   const SizedBox(height: 16),
                   Container(

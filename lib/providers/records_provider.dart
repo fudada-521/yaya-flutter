@@ -4,11 +4,12 @@ import '../models/feeding_record.dart';
 import '../models/sleep_record.dart';
 import '../models/diaper_record.dart';
 import '../models/growth_record.dart';
+import '../models/solid_food_record.dart';
 
 /// 记录数据状态管理类
 ///
 /// 使用 Provider 模式管理所有记录类型的全局状态。
-/// 支持四种记录类型：喂养、睡眠、尿布、成长。
+/// 支持五种记录类型：喂养、睡眠、尿布、成长、辅食。
 /// 提供筛选功能（按宝宝、日期范围）和数据统计。
 class RecordsProvider extends ChangeNotifier {
   final DatabaseHelper _databaseHelper = DatabaseHelper();
@@ -18,6 +19,7 @@ class RecordsProvider extends ChangeNotifier {
   List<SleepRecord> _sleepRecords = [];
   List<DiaperRecord> _diaperRecords = [];
   List<GrowthRecord> _growthRecords = [];
+  List<SolidFoodRecord> _solidFoodRecords = [];
 
   // 当前筛选条件
   String? _currentBabyId;
@@ -45,6 +47,7 @@ class RecordsProvider extends ChangeNotifier {
   List<SleepRecord> get sleepRecords => _filteredSleepRecords;
   List<DiaperRecord> get diaperRecords => _filteredDiaperRecords;
   List<GrowthRecord> get growthRecords => _filteredGrowthRecords;
+  List<SolidFoodRecord> get solidFoodRecords => _filteredSolidFoodRecords;
 
   List<FeedingRecord> get _filteredFeedingRecords {
     var records = _feedingRecords;
@@ -102,6 +105,20 @@ class RecordsProvider extends ChangeNotifier {
     return records;
   }
 
+  List<SolidFoodRecord> get _filteredSolidFoodRecords {
+    var records = _solidFoodRecords;
+    if (_currentBabyId != null) {
+      records = records.where((r) => r.babyId == _currentBabyId).toList();
+    }
+    if (_startDate != null) {
+      records = records.where((r) => r.mealTime.isAfter(_startDate!)).toList();
+    }
+    if (_endDate != null) {
+      records = records.where((r) => r.mealTime.isBefore(_endDate!.add(const Duration(days: 1)))).toList();
+    }
+    return records;
+  }
+
   bool get isLoading => _isLoading;
 
   // 加载所有记录
@@ -114,6 +131,7 @@ class RecordsProvider extends ChangeNotifier {
       _sleepRecords = await _databaseHelper.getSleepRecords();
       _diaperRecords = await _databaseHelper.getDiaperRecords();
       _growthRecords = await _databaseHelper.getGrowthRecords();
+      _solidFoodRecords = await _databaseHelper.getSolidFoodRecords();
     } catch (e) {
       debugPrint('加载记录失败: $e');
     } finally {
@@ -250,6 +268,34 @@ class RecordsProvider extends ChangeNotifier {
     }
   }
 
+  // Solid food record operations (辅食记录)
+  Future<void> addSolidFoodRecord(SolidFoodRecord record) async {
+    try {
+      await _databaseHelper.insertSolidFoodRecord(record);
+      await loadAllRecords();
+    } catch (e) {
+      debugPrint('添加辅食记录失败: $e');
+    }
+  }
+
+  Future<void> updateSolidFoodRecord(SolidFoodRecord record) async {
+    try {
+      await _databaseHelper.updateSolidFoodRecord(record);
+      await loadAllRecords();
+    } catch (e) {
+      debugPrint('更新辅食记录失败: $e');
+    }
+  }
+
+  Future<void> deleteSolidFoodRecord(String recordId) async {
+    try {
+      await _databaseHelper.deleteSolidFoodRecord(recordId);
+      await loadAllRecords();
+    } catch (e) {
+      debugPrint('删除辅食记录失败: $e');
+    }
+  }
+
   // 清空所有记录
   Future<void> clearAllRecords() async {
     try {
@@ -258,6 +304,7 @@ class RecordsProvider extends ChangeNotifier {
       _sleepRecords = [];
       _diaperRecords = [];
       _growthRecords = [];
+      _solidFoodRecords = [];
       notifyListeners();
     } catch (e) {
       debugPrint('清空所有记录失败: $e');
@@ -291,6 +338,7 @@ class RecordsProvider extends ChangeNotifier {
     allRecords.addAll(_filteredSleepRecords);
     allRecords.addAll(_filteredDiaperRecords);
     allRecords.addAll(_filteredGrowthRecords);
+    allRecords.addAll(_filteredSolidFoodRecords);
 
     // 按时间排序
     allRecords.sort((a, b) {
@@ -305,6 +353,8 @@ class RecordsProvider extends ChangeNotifier {
         aTime = a.changeTime;
       } else if (a is GrowthRecord) {
         aTime = a.recordDate;
+      } else if (a is SolidFoodRecord) {
+        aTime = a.mealTime;
       } else {
         return 0;
       }
@@ -317,6 +367,8 @@ class RecordsProvider extends ChangeNotifier {
         bTime = b.changeTime;
       } else if (b is GrowthRecord) {
         bTime = b.recordDate;
+      } else if (b is SolidFoodRecord) {
+        bTime = b.mealTime;
       } else {
         return 0;
       }
