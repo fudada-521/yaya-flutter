@@ -48,24 +48,34 @@ flutter pub run flutter_launcher_icons
 - 数据库设计支持多宝宝管理，便于家庭使用
 - 所有模型都包含完整的CRUD操作和JSON序列化，便于未来API集成
 
+## 编译和热启动
+- 使用 `flutter run` 启动应用，支持热重载和热重启
+- 在开发过程中频繁使用热重载以快速迭代UI和逻辑
+- 在更改状态管理或数据库结构后，使用热重启以确保所有更改生效
+
 ## 架构
 
 ### 状态管理：Provider 模式
 
 - `BabyProvider` (`lib/providers/baby_provider.dart`) - 管理婴儿档案 (CRUD, 当前婴儿选择)
-- `RecordsProvider` (`lib/providers/records_provider.dart`) - 管理所有记录类型 (喂养, 睡眠, 尿布, 成长)
+- `RecordsProvider` (`lib/providers/records_provider.dart`) - 管理所有记录类型 (喂养, 睡眠, 尿布, 成长, 辅食)
 
 ### 数据层：SQLite
 
 - `DatabaseHelper` 单例 (`lib/database/database_helper.dart`) 管理所有数据库操作
-- 通过 `version` 字段支持数据库迁移 (v1 → v2 添加了 `duration` 列)
+- 通过 `version` 字段支持数据库迁移 (v1 → v2 → v3 → v4)
 - **已知问题**: Web 平台抛出 `UnsupportedError` 用于 SQLite
 
 ### 模型层
 
 - `BaseRecord` (`lib/models/base_record.dart`) - 抽象基类，具有通用字段 (id, babyId, createdAt)
-- 所有记录模型继承自 BaseRecord: `FeedingRecord`, `SleepRecord`, `DiaperRecord`, `GrowthRecord`
+- 所有记录模型继承自 BaseRecord: `FeedingRecord`, `SleepRecord`, `DiaperRecord`, `GrowthRecord`, `SolidFoodRecord`
 - 模型包括 `toMap()`/`fromMap()` 用于数据库序列化和 `toJson()`/`fromJson()` 用于 API
+
+### 服务层
+
+- `ThemeService` (`lib/services/theme_service.dart`) - 主题设置管理
+- `FoodIngredientService` (`lib/services/food_ingredient_service.dart`) - 食材列表管理，支持自定义食材持久化
 
 ### UI 层
 
@@ -76,6 +86,7 @@ flutter pub run flutter_launcher_icons
 
 ### 设计模式
 
+- 代码设计遵循面向对象原则，使用抽象类和接口进行解耦，遵行单一职责原则、开放封闭原则等
 - **模板方法**: `base_record_sheet.dart` 定义骨架，子类实现特定逻辑
 - **策略**: 每种记录类型有自己的表单类 (`feeding_record_sheet.dart` 等)
 - **工厂**: `RecordBottomSheetHelper` 根据记录类型创建适当的表单
@@ -85,10 +96,11 @@ flutter pub run flutter_launcher_icons
 | 表 | 关键字段 |
 |-------|------------|
 | babies | id, name, birthDate, gender, birthWeight, birthHeight |
-| feeding_records | id, babyId, feedTime, amount, type (breast/pumped/bottle/solid), duration |
+| feeding_records | id, babyId, feedTime, amount, type (breast/pumped/bottle), duration |
 | sleep_records | id, babyId, startTime, endTime, quality |
 | diaper_records | id, babyId, changeTime, type, status |
 | growth_records | id, babyId, recordDate, height, weight, headCircumference |
+| solid_food_records | id, babyId, mealTime, foodName, amount, texture, ingredients, notes |
 
 ### 喂养类型
 | 类型 | 显示 | 单位 |
@@ -96,7 +108,19 @@ flutter pub run flutter_launcher_icons
 | breast | 母乳亲喂 | 分钟 (持续时间) |
 | pumped | 母乳瓶喂 | ml (数量) |
 | bottle | 奶粉 | ml (数量) |
-| solid | 辅食 | ml/g (数量) |
+
+### 辅食质地类型
+| 类型 | 显示 | 图标 |
+|------|---------|------|
+| puree | 泥糊 | 🫧 |
+| soft | 软烂 | 🥣 |
+| piece | 小块 | 🍖 |
+| solid | 固体 | 🍽️ |
+
+### 食材管理
+- 默认食材：米粉、南瓜、胡萝卜、土豆、苹果、香蕉、鸡肉、蛋黄
+- 支持自定义添加/删除食材
+- 食材列表通过 `SharedPreferences` 持久化 (`food_ingredients` key)
 
 ## UI 主题
 

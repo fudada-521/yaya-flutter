@@ -8,6 +8,7 @@ import '../models/growth_record.dart';
 import '../models/solid_food_record.dart';
 import '../providers/baby_provider.dart';
 import '../providers/records_provider.dart';
+import '../widgets/sheet/solid_food_record_sheet.dart';
 import '../widgets/sheet/sheets.dart';
 import '../widgets/sheet/components/components.dart';
 
@@ -125,11 +126,11 @@ class RecordBottomSheetHelper {
 
   static void showAddSolidFoodRecord(BuildContext context) {
     if (!_checkBabyExists(context)) return;
-    SolidFoodRecordSheet().show(context);
+    SolidFoodRecordSheetWrapper().show(context);
   }
 
   static void showEditSolidFoodRecord(BuildContext context, SolidFoodRecord record) {
-    SolidFoodRecordSheet(recordToEdit: record).show(context);
+    SolidFoodRecordSheetWrapper(recordToEdit: record).show(context);
   }
 
   // 快速成长记录
