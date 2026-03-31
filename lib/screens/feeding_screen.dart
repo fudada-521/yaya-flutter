@@ -171,12 +171,6 @@ class _FeedingScreenState extends State<FeedingScreen> {
           color: const Color(0xFFFF8A65),
           onTap: () => _quickRecord('bottle', babyId),
         ),
-        QuickRecordButton(
-          label: '辅食',
-          icon: Icons.restaurant,
-          color: const Color(0xFF81C784),
-          onTap: () => _quickRecord('solid', babyId),
-        ),
       ],
     );
   }

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 import '../../models/feeding_record.dart';
 import '../../providers/records_provider.dart';
@@ -39,20 +40,9 @@ class FeedingRecordSheet extends BaseRecordSheet<FeedingRecordState> {
         primaryColor: const Color(0xFFFF8A65),
       ),
       const SizedBox(height: 20),
-      SheetChipSelector(
-        label: '喂养类型',
-        selectedValue: state.type,
-        onChanged: (type) {
-          if (type != null) {
-            setState(() => state.type = type);
-          }
-        },
-        options: const [
-          SheetChipOption(value: 'breast', label: '母乳亲喂', icon: Icons.favorite, color: Color(0xFFF48FB1)),
-          SheetChipOption(value: 'pumped', label: '母乳瓶喂', icon: Icons.local_drink, color: Color(0xFFE91E63)),
-          SheetChipOption(value: 'bottle', label: '奶粉', icon: Icons.local_dining, color: Color(0xFFFF8A65)),
-          SheetChipOption(value: 'solid', label: '辅食', icon: Icons.restaurant, color: Color(0xFF81C784)),
-        ],
+      _FeedingTypeSelector(
+        selectedType: state.type,
+        onChanged: (type) => setState(() => state.type = type),
       ),
       if (state.type == 'breast') ...[
         const SizedBox(height: 16),
@@ -801,6 +791,106 @@ class _BreastFeedingDurationSelectorState extends State<_BreastFeedingDurationSe
           ),
         ),
       ],
+    );
+  }
+}
+
+/// 喂养类型选择器（撑满宽度布局）
+class _FeedingTypeSelector extends StatelessWidget {
+  final String selectedType;
+  final ValueChanged<String> onChanged;
+
+  const _FeedingTypeSelector({
+    required this.selectedType,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '喂养类型',
+          style: TextStyle(
+            fontSize: 13,
+            color: Colors.grey[600],
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            _buildTypeCard(
+              value: 'breast',
+              label: '母乳亲喂',
+              iconWidget: FaIcon(FontAwesomeIcons.baby, size: 24),
+              color: const Color(0xFFF48FB1),
+            ),
+            const SizedBox(width: 8),
+            _buildTypeCard(
+              value: 'pumped',
+              label: '母乳瓶喂',
+              iconWidget: FaIcon(FontAwesomeIcons.bottleDroplet, size: 24),
+              color: const Color(0xFFE91E63),
+            ),
+            const SizedBox(width: 8),
+            _buildTypeCard(
+              value: 'bottle',
+              label: '奶粉',
+              iconWidget: FaIcon(FontAwesomeIcons.jar, size: 24),
+              color: const Color(0xFFFF8A65),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTypeCard({
+    required String value,
+    required String label,
+    required Widget iconWidget,
+    required Color color,
+  }) {
+    final isSelected = selectedType == value;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => onChanged(value),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: isSelected ? color.withAlpha(25) : Colors.grey[50],
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isSelected ? color : Colors.grey[200]!,
+              width: isSelected ? 1.5 : 1,
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconTheme(
+                data: IconThemeData(
+                  color: isSelected ? color : Colors.grey[400],
+                ),
+                child: iconWidget,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  color: isSelected ? color : Colors.grey[600],
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
