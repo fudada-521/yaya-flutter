@@ -12,13 +12,11 @@ import 'components/components.dart';
 class VaccineRecordSheet extends StatefulWidget {
   final VaccineRecord? recordToEdit;
   final VaccineScheduleItem? scheduleItem; // 从计划项快速添加
-  final CustomVaccineScheduleItem? customVaccineItem; // 从自定义疫苗待接种项添加
 
   const VaccineRecordSheet({
     super.key,
     this.recordToEdit,
     this.scheduleItem,
-    this.customVaccineItem,
   });
 
   @override
@@ -36,52 +34,28 @@ class VaccineRecordSheet extends StatefulWidget {
 
 class _VaccineRecordSheetState extends State<VaccineRecordSheet> {
   late VaccinePlanItem? _selectedVaccine;
+  late int _selectedDoseNumber; // 选中的剂次
   late DateTime _vaccinationTime;
   final _hospitalController = TextEditingController();
   final _injectionSiteController = TextEditingController();
-  final _notesController = TextEditingController();
   bool _isLoading = false;
-
-  // 自定义疫苗相关
-  bool _isCustomVaccine = false;
-  final _vaccineNameController = TextEditingController();
-  final _diseaseController = TextEditingController();
-  int _totalDoses = 1;
-  int _doseIntervalMonths = 1;
-  int _firstDoseMonth = 0;
 
   @override
   void initState() {
     super.initState();
     if (widget.recordToEdit != null) {
       _selectedVaccine = VaccinePlanData.findByName(widget.recordToEdit!.vaccineName);
+      _selectedDoseNumber = widget.recordToEdit!.doseNumber ?? 1;
       _vaccinationTime = widget.recordToEdit!.vaccinationTime;
       _hospitalController.text = widget.recordToEdit!.hospital ?? '';
       _injectionSiteController.text = widget.recordToEdit!.injectionSite ?? '';
-      _notesController.text = widget.recordToEdit!.notes ?? '';
-      // 如果是编辑自定义疫苗
-      if (widget.recordToEdit!.isCustom) {
-        _isCustomVaccine = true;
-        _vaccineNameController.text = widget.recordToEdit!.vaccineName;
-        _diseaseController.text = widget.recordToEdit!.disease ?? '';
-        _totalDoses = widget.recordToEdit!.totalDoses ?? 1;
-        _doseIntervalMonths = widget.recordToEdit!.doseIntervalMonths ?? 1;
-        _firstDoseMonth = widget.recordToEdit!.firstDoseMonth ?? 0;
-      }
     } else if (widget.scheduleItem != null) {
       _selectedVaccine = widget.scheduleItem!.vaccine;
-      _vaccinationTime = DateTime.now();
-    } else if (widget.customVaccineItem != null) {
-      // 从自定义疫苗待接种项添加
-      _isCustomVaccine = true;
-      _vaccineNameController.text = widget.customVaccineItem!.record.vaccineName;
-      _diseaseController.text = widget.customVaccineItem!.record.disease ?? '';
-      _totalDoses = widget.customVaccineItem!.record.totalDoses ?? 1;
-      _doseIntervalMonths = widget.customVaccineItem!.record.doseIntervalMonths ?? 1;
-      _firstDoseMonth = widget.customVaccineItem!.record.firstDoseMonth ?? 0;
+      _selectedDoseNumber = widget.scheduleItem!.doseNumber;
       _vaccinationTime = DateTime.now();
     } else {
       _selectedVaccine = null;
+      _selectedDoseNumber = 1;
       _vaccinationTime = DateTime.now();
     }
   }
@@ -90,9 +64,6 @@ class _VaccineRecordSheetState extends State<VaccineRecordSheet> {
   void dispose() {
     _hospitalController.dispose();
     _injectionSiteController.dispose();
-    _notesController.dispose();
-    _vaccineNameController.dispose();
-    _diseaseController.dispose();
     super.dispose();
   }
 
@@ -120,31 +91,17 @@ class _VaccineRecordSheetState extends State<VaccineRecordSheet> {
               const SizedBox(height: 20),
               SheetHeader(
                 title: widget.recordToEdit != null ? '编辑疫苗记录' : '记录接种',
-                subtitle: _isCustomVaccine
-                    ? '${_vaccineNameController.text} ${_totalDoses > 1 ? '第${_getDoseNumber()}针' : ''}'
-                    : (_selectedVaccine != null
-                        ? '${_selectedVaccine!.name} ${_selectedVaccine!.totalDoses > 1 ? '第${_getDoseNumber()}针' : ''}'
-                        : '记录宝宝疫苗接种情况'),
+                subtitle: _selectedVaccine != null
+                    ? '${_selectedVaccine!.name} ${_selectedVaccine!.totalDoses > 1 ? '第${_getDoseNumber()}针' : ''}'
+                    : '记录宝宝疫苗接种情况',
                 primaryColor: const Color(0xFF26A69A),
               ),
               const SizedBox(height: 24),
 
-              // 如果不是编辑模式，显示自定义疫苗开关
-              if (widget.recordToEdit == null && widget.scheduleItem == null) ...[
-                _buildCustomVaccineToggle(),
+              // 内置疫苗选择（仅在非编辑模式显示）
+              if (widget.recordToEdit == null) ...[
+                _buildVaccineSelector(),
                 const SizedBox(height: 16),
-              ],
-
-              // 自定义疫苗表单
-              if (_isCustomVaccine) ...[
-                _buildCustomVaccineFields(),
-                const SizedBox(height: 16),
-              ] else ...[
-                // 内置疫苗选择（仅在非编辑模式显示）
-                if (widget.recordToEdit == null) ...[
-                  _buildVaccineSelector(),
-                  const SizedBox(height: 16),
-                ],
               ],
 
               // 接种时间
@@ -171,16 +128,6 @@ class _VaccineRecordSheetState extends State<VaccineRecordSheet> {
                 hint: '如：左上臂',
               ),
               const SizedBox(height: 16),
-
-              // 备注（仅自定义疫苗显示）
-              if (_isCustomVaccine) ...[
-                SheetTextField(
-                  controller: _notesController,
-                  label: '备注',
-                  hint: '选填',
-                ),
-                const SizedBox(height: 16),
-              ],
 
               SheetActionButtons(
                 onCancel: () => Navigator.pop(context),
@@ -219,191 +166,104 @@ class _VaccineRecordSheetState extends State<VaccineRecordSheet> {
     );
   }
 
-  /// 构建自定义疫苗开关
-  Widget _buildCustomVaccineToggle() {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.purple[50],
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.purple[200]!),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.add_circle_outlined, color: Colors.purple[600]),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              '自定义疫苗（免疫规划/非免疫规划之外的疫苗）',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.purple[700],
-              ),
-            ),
-          ),
-          Switch(
-            value: _isCustomVaccine,
-            onChanged: (value) => setState(() => _isCustomVaccine = value),
-            activeTrackColor: Colors.purple[200],
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// 构建自定义疫苗表单字段
-  Widget _buildCustomVaccineFields() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // 疫苗名称
-        SheetTextField(
-          controller: _vaccineNameController,
-          label: '疫苗名称',
-          hint: '请输入疫苗名称',
-        ),
-        const SizedBox(height: 16),
-
-        // 预防疾病
-        SheetTextField(
-          controller: _diseaseController,
-          label: '预防疾病',
-          hint: '选填，如：手足口病',
-        ),
-        const SizedBox(height: 16),
-
-        // 总剂次和间隔月数
-        Row(
-          children: [
-            Expanded(
-              child: _buildNumberField(
-                label: '总剂次',
-                value: _totalDoses,
-                min: 1,
-                max: 10,
-                onChanged: (v) => setState(() => _totalDoses = v),
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: _buildNumberField(
-                label: '间隔月数',
-                value: _doseIntervalMonths,
-                min: 1,
-                max: 24,
-                onChanged: (v) => setState(() => _doseIntervalMonths = v),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-
-        // 首剂推荐月龄
-        _buildNumberField(
-          label: '首剂推荐月龄',
-          value: _firstDoseMonth,
-          min: 0,
-          max: 72,
-          onChanged: (v) => setState(() => _firstDoseMonth = v),
-          suffix: '月龄',
-        ),
-      ],
-    );
-  }
-
-  /// 构建数字选择字段
-  Widget _buildNumberField({
-    required String label,
-    required int value,
-    required int min,
-    required int max,
-    required ValueChanged<int> onChanged,
-    String? suffix,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey[600],
-          ),
-        ),
-        const SizedBox(height: 4),
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.grey[100],
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Row(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.remove),
-                onPressed: value > min ? () => onChanged(value - 1) : null,
-                iconSize: 20,
-              ),
-              Expanded(
-                child: Text(
-                  suffix != null ? '$value$suffix' : '$value',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.add),
-                onPressed: value < max ? () => onChanged(value + 1) : null,
-                iconSize: 20,
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
   /// 构建内置疫苗选择器
   Widget _buildVaccineSelector() {
+    final hasVaccine = _selectedVaccine != null;
+    final totalDoses = _selectedVaccine?.totalDoses ?? 0;
+    final showDose = hasVaccine && totalDoses > 1;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           '选择疫苗',
           style: TextStyle(
-            fontSize: 12,
+            fontSize: 13,
             color: Colors.grey[600],
+            fontWeight: FontWeight.w500,
           ),
         ),
         const SizedBox(height: 8),
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.grey[100],
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<VaccinePlanItem>(
-              value: _selectedVaccine,
-              isExpanded: true,
-              hint: const Padding(
-                padding: EdgeInsets.only(left: 12),
-                child: Text('请选择疫苗'),
+        GestureDetector(
+          onTap: () => _showVaccinePicker(),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: hasVaccine ? const Color(0xFF26A69A) : Colors.grey[300]!,
+                width: hasVaccine ? 1.5 : 1,
               ),
-              items: VaccinePlanData.allVaccines.map((vaccine) {
-                return DropdownMenuItem(
-                  value: vaccine,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF26A69A).withAlpha(25),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(
+                    Icons.vaccines,
+                    color: Color(0xFF26A69A),
+                    size: 18,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _selectedVaccine?.name ?? '请选择疫苗',
+                        style: TextStyle(
+                          fontSize: 15,
+                          color: hasVaccine
+                              ? const Color(0xFF2D2D2D)
+                              : Colors.grey[400],
+                          fontWeight: hasVaccine
+                              ? FontWeight.w500
+                              : FontWeight.normal,
+                        ),
+                      ),
+                      if (showDose)
+                        Text(
+                          '第$_selectedDoseNumber / $totalDoses 剂',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[500],
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                if (hasVaccine)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: _selectedVaccine!.isFree
+                          ? Colors.green[50]
+                          : Colors.blue[50],
+                      borderRadius: BorderRadius.circular(6),
+                    ),
                     child: Text(
-                      '${vaccine.name}（${vaccine.isFree ? "免费" : "自费"}）',
-                      overflow: TextOverflow.ellipsis,
+                      _selectedVaccine!.isFree ? '免费' : '自费',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        color: _selectedVaccine!.isFree
+                            ? Colors.green[600]
+                            : Colors.blue[600],
+                      ),
                     ),
                   ),
-                );
-              }).toList(),
-              onChanged: (value) => setState(() => _selectedVaccine = value),
+                const SizedBox(width: 8),
+                Icon(
+                  Icons.keyboard_arrow_down,
+                  color: Colors.grey[400],
+                ),
+              ],
             ),
           ),
         ),
@@ -411,13 +271,34 @@ class _VaccineRecordSheetState extends State<VaccineRecordSheet> {
     );
   }
 
+  /// 显示疫苗选择弹窗
+  void _showVaccinePicker() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => _VaccinePickerSheet(
+        selectedVaccine: _selectedVaccine,
+        selectedDoseNumber: _selectedDoseNumber,
+        onSelected: (vaccine, doseNumber) {
+          setState(() {
+            _selectedVaccine = vaccine;
+            _selectedDoseNumber = doseNumber;
+          });
+          Navigator.pop(context);
+        },
+      ),
+    );
+  }
+
   int _getDoseNumber() {
-    // 从 scheduleItem 或 recordToEdit 或 customVaccineItem 获取剂次
+    // 优先使用用户选择的剂次
+    if (_selectedVaccine != null) {
+      return _selectedDoseNumber;
+    }
+    // 从 scheduleItem 或 recordToEdit 获取剂次
     if (widget.scheduleItem != null) {
       return widget.scheduleItem!.doseNumber;
-    }
-    if (widget.customVaccineItem != null) {
-      return widget.customVaccineItem!.doseNumber;
     }
     if (widget.recordToEdit != null) {
       return widget.recordToEdit!.doseNumber ?? 1;
@@ -427,18 +308,7 @@ class _VaccineRecordSheetState extends State<VaccineRecordSheet> {
 
   Future<void> _handleSave() async {
     // 验证
-    if (_isCustomVaccine) {
-      if (_vaccineNameController.text.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('请输入疫苗名称'),
-            backgroundColor: Colors.orange,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-        return;
-      }
-    } else if (_selectedVaccine == null) {
+    if (_selectedVaccine == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('请选择疫苗'),
@@ -469,38 +339,17 @@ class _VaccineRecordSheetState extends State<VaccineRecordSheet> {
     final navigator = Navigator.of(context);
 
     try {
-      VaccineRecord record;
-      if (_isCustomVaccine) {
-        record = VaccineRecord(
-          id: widget.recordToEdit?.id,
-          babyId: currentBaby.id,
-          vaccinationTime: _vaccinationTime,
-          vaccineName: _vaccineNameController.text,
-          vaccineCode: null, // 自定义疫苗没有code
-          status: VaccineRecord.statusCompleted,
-          hospital: _hospitalController.text.isEmpty ? null : _hospitalController.text,
-          injectionSite: _injectionSiteController.text.isEmpty ? null : _injectionSiteController.text,
-          notes: _notesController.text.isEmpty ? null : _notesController.text,
-          doseNumber: _getDoseNumber(),
-          isCustom: true,
-          totalDoses: _totalDoses,
-          doseIntervalMonths: _doseIntervalMonths,
-          firstDoseMonth: _firstDoseMonth,
-          disease: _diseaseController.text.isEmpty ? null : _diseaseController.text,
-        );
-      } else {
-        record = VaccineRecord(
-          id: widget.recordToEdit?.id,
-          babyId: currentBaby.id,
-          vaccinationTime: _vaccinationTime,
-          vaccineName: _selectedVaccine!.name,
-          vaccineCode: _selectedVaccine!.code,
-          status: VaccineRecord.statusCompleted,
-          hospital: _hospitalController.text.isEmpty ? null : _hospitalController.text,
-          injectionSite: _injectionSiteController.text.isEmpty ? null : _injectionSiteController.text,
-          doseNumber: _getDoseNumber(),
-        );
-      }
+      final record = VaccineRecord(
+        id: widget.recordToEdit?.id,
+        babyId: currentBaby.id,
+        vaccinationTime: _vaccinationTime,
+        vaccineName: _selectedVaccine!.name,
+        vaccineCode: _selectedVaccine!.code,
+        status: VaccineRecord.statusCompleted,
+        hospital: _hospitalController.text.isEmpty ? null : _hospitalController.text,
+        injectionSite: _injectionSiteController.text.isEmpty ? null : _injectionSiteController.text,
+        doseNumber: _getDoseNumber(),
+      );
 
       final vaccineProvider = Provider.of<VaccineProvider>(context, listen: false);
       if (widget.recordToEdit != null) {
@@ -566,6 +415,362 @@ class _VaccineRecordSheetState extends State<VaccineRecordSheet> {
             child: Text('删除', style: TextStyle(color: Colors.red[400])),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// 疫苗选择弹窗
+class _VaccinePickerSheet extends StatefulWidget {
+  final VaccinePlanItem? selectedVaccine;
+  final int selectedDoseNumber;
+  final Function(VaccinePlanItem vaccine, int doseNumber) onSelected;
+
+  const _VaccinePickerSheet({
+    this.selectedVaccine,
+    required this.selectedDoseNumber,
+    required this.onSelected,
+  });
+
+  @override
+  State<_VaccinePickerSheet> createState() => _VaccinePickerSheetState();
+}
+
+class _VaccinePickerSheetState extends State<_VaccinePickerSheet> {
+  String _searchQuery = '';
+  bool _showOnlyFree = false;
+
+  List<VaccinePlanItem> get _filteredVaccines {
+    return VaccinePlanData.allVaccines.where((vaccine) {
+      // 搜索过滤
+      if (_searchQuery.isNotEmpty) {
+        final query = _searchQuery.toLowerCase();
+        if (!vaccine.name.toLowerCase().contains(query)) {
+          return false;
+        }
+      }
+      // 免费过滤
+      if (_showOnlyFree && !vaccine.isFree) {
+        return false;
+      }
+      return true;
+    }).toList();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(24),
+          topRight: Radius.circular(24),
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const SizedBox(height: 12),
+          const SheetHandle(),
+          const SizedBox(height: 16),
+          // 标题
+          const Text(
+            '选择疫苗',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF2D2D2D),
+            ),
+          ),
+          const SizedBox(height: 16),
+          // 搜索框
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.grey[100],
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: TextField(
+                onChanged: (value) => setState(() => _searchQuery = value),
+                decoration: InputDecoration(
+                  hintText: '搜索疫苗名称',
+                  hintStyle: TextStyle(color: Colors.grey[400]),
+                  prefixIcon: Icon(Icons.search, color: Colors.grey[400]),
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          // 免费/全部切换
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Row(
+              children: [
+                _buildFilterChip('全部', !_showOnlyFree, () {
+                  setState(() => _showOnlyFree = false);
+                }),
+                const SizedBox(width: 8),
+                _buildFilterChip('仅免费', _showOnlyFree, () {
+                  setState(() => _showOnlyFree = true);
+                }),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          // 疫苗列表
+          Flexible(
+            child: Container(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.5,
+              ),
+              child: ListView.builder(
+                shrinkWrap: true,
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                itemCount: _filteredVaccines.length,
+                itemBuilder: (context, index) {
+                  final vaccine = _filteredVaccines[index];
+                  final isSelected = widget.selectedVaccine?.name == vaccine.name;
+                  return _buildVaccineItem(vaccine, isSelected);
+                },
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterChip(String label, bool isSelected, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFF26A69A) : Colors.grey[100],
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            color: isSelected ? Colors.white : Colors.grey[600],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildVaccineItem(VaccinePlanItem vaccine, bool isSelected) {
+    return GestureDetector(
+      onTap: () {
+        if (vaccine.totalDoses > 1) {
+          // 多剂次疫苗，弹出剂次选择
+          _showDosePicker(vaccine);
+        } else {
+          // 单剂次疫苗，直接返回
+          widget.onSelected(vaccine, 1);
+        }
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFF26A69A).withAlpha(13) : Colors.grey[50],
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected ? const Color(0xFF26A69A) : Colors.transparent,
+            width: 1.5,
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: vaccine.isFree
+                    ? Colors.green.withAlpha(25)
+                    : Colors.blue.withAlpha(25),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                vaccine.isFree ? Icons.shield_outlined : Icons.vaccines_outlined,
+                color: vaccine.isFree ? Colors.green : Colors.blue,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    vaccine.name,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF2D2D2D),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '共${vaccine.totalDoses}剂',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[500],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: vaccine.isFree ? Colors.green[50] : Colors.blue[50],
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                vaccine.isFree ? '免费' : '自费',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: vaccine.isFree ? Colors.green[600] : Colors.blue[600],
+                ),
+              ),
+            ),
+            if (isSelected) ...[
+              const SizedBox(width: 8),
+              const Icon(
+                Icons.check_circle,
+                color: Color(0xFF26A69A),
+                size: 22,
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// 显示剂次选择弹窗
+  void _showDosePicker(VaccinePlanItem vaccine) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(24),
+            topRight: Radius.circular(24),
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 12),
+            const SheetHandle(),
+            const SizedBox(height: 16),
+            Text(
+              '选择 ${vaccine.name} 的剂次',
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF2D2D2D),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                alignment: WrapAlignment.center,
+                children: List.generate(vaccine.totalDoses, (index) {
+                  final doseNumber = index + 1;
+                  final isSelected = doseNumber == widget.selectedDoseNumber;
+                  return GestureDetector(
+                    onTap: () {
+                      widget.onSelected(vaccine, doseNumber);
+                      Navigator.pop(context); // 关闭剂次选择
+                    },
+                    child: Container(
+                      width: 72,
+                      height: 72,
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? const Color(0xFF26A69A)
+                            : Colors.grey[100],
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: isSelected
+                              ? const Color(0xFF26A69A)
+                              : Colors.grey[300]!,
+                          width: isSelected ? 2 : 1,
+                        ),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            '第$doseNumber',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: isSelected ? Colors.white : Colors.grey[700],
+                            ),
+                          ),
+                          Text(
+                            '剂',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: isSelected
+                                  ? Colors.white.withAlpha(204)
+                                  : Colors.grey[500],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }),
+              ),
+            ),
+            const SizedBox(height: 24),
+            // 取消按钮
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[100],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    '取消',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+          ],
+        ),
       ),
     );
   }

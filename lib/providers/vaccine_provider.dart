@@ -62,6 +62,12 @@ class VaccineProvider extends ChangeNotifier {
     return completedRecords.map((r) {
       // 优先使用记录中存储的 doseNumber
       if (r.doseNumber != null) {
+        // 使用 vaccine.code 进行匹配，与 VaccineScheduleService 保持一致
+        final vaccine = VaccinePlanData.findByName(r.vaccineName);
+        if (vaccine != null) {
+          return '${vaccine.code}_${r.doseNumber}';
+        }
+        // 如果找不到对应疫苗（自定义疫苗），使用疫苗名称作为标识
         return '${r.vaccineName}_${r.doseNumber}';
       }
 
@@ -78,9 +84,10 @@ class VaccineProvider extends ChangeNotifier {
               doseDate.day == r.vaccinationTime.day;
         });
         if (doseIndex >= 0) {
-          return '${r.vaccineName}_${doseIndex + 1}';
+          return '${vaccine.code}_${doseIndex + 1}';
         }
       }
+      // 未知疫苗，使用名称+剂次1
       return '${r.vaccineName}_1';
     }).toSet();
   }

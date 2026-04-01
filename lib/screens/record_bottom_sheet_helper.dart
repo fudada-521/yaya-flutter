@@ -137,9 +137,9 @@ class RecordBottomSheetHelper {
 
   // ==================== 疫苗记录 ====================
 
-  static void showAddVaccineRecord(BuildContext context, {VaccineScheduleItem? scheduleItem, CustomVaccineScheduleItem? customVaccineItem}) {
+  static void showAddVaccineRecord(BuildContext context, {VaccineScheduleItem? scheduleItem}) {
     if (!_checkBabyExists(context)) return;
-    VaccineRecordSheet(scheduleItem: scheduleItem, customVaccineItem: customVaccineItem).show(context);
+    VaccineRecordSheet(scheduleItem: scheduleItem).show(context);
   }
 
   static void showEditVaccineRecord(BuildContext context, VaccineRecord record) {
