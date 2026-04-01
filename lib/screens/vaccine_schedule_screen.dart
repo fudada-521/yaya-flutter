@@ -8,6 +8,7 @@ import '../models/baby.dart';
 import '../services/vaccine_schedule_service.dart';
 import '../widgets/empty_baby_card.dart';
 import 'record_bottom_sheet_helper.dart';
+import 'vaccine_info_screen.dart';
 
 /// 疫苗筛选类型
 enum VaccineFilter { all, national, nonNational, custom }
@@ -74,17 +75,21 @@ class _VaccineScheduleScreenState extends State<VaccineScheduleScreen> {
   Widget _buildFilterTabs() {
     return Container(
       color: Colors.white,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Row(
-        children: [
-          _buildFilterChip(VaccineFilter.national, '免疫规划', Icons.shield_outlined),
-          const SizedBox(width: 8),
-          _buildFilterChip(VaccineFilter.nonNational, '非免疫规划', Icons.paid_outlined),
-          const SizedBox(width: 8),
-          _buildFilterChip(VaccineFilter.custom, '自定义', Icons.add_circle_outlined),
-          const SizedBox(width: 8),
-          _buildFilterChip(VaccineFilter.all, '全部', Icons.list),
-        ],
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Row(
+          children: [
+            _buildFilterChip(VaccineFilter.national, '免疫规划', Icons.shield_outlined),
+            const SizedBox(width: 8),
+            _buildFilterChip(VaccineFilter.nonNational, '非免疫规划', Icons.paid_outlined),
+            const SizedBox(width: 8),
+            _buildFilterChip(VaccineFilter.custom, '自定义', Icons.add_circle_outlined),
+            const SizedBox(width: 8),
+            _buildFilterChip(VaccineFilter.all, '全部', Icons.list),
+          ],
+        ),
       ),
     );
   }
@@ -150,6 +155,19 @@ class _VaccineScheduleScreenState extends State<VaccineScheduleScreen> {
           ),
         ],
       ),
+      actions: [
+        // 科普按钮
+        IconButton(
+          icon: Icon(Icons.help_outline, color: Colors.grey[600]),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const VaccineInfoScreen()),
+            );
+          },
+          tooltip: '疫苗知识科普',
+        ),
+      ],
     );
   }
 
