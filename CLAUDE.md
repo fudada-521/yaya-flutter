@@ -50,8 +50,8 @@ flutter pub run flutter_launcher_icons
 
 ## 编译和热启动
 - 使用 `flutter run` 启动应用，支持热重载和热重启
-- 在开发过程中频繁使用热重载以快速迭代UI和逻辑
-- 在更改状态管理或数据库结构后，使用热重启以确保所有更改生效
+- 在开发完成一个功能后，使用热重载快速查看更改
+- 在进行重大更改后，使用热重启确保状态重置
 
 ## 架构
 
@@ -59,23 +59,26 @@ flutter pub run flutter_launcher_icons
 
 - `BabyProvider` (`lib/providers/baby_provider.dart`) - 管理婴儿档案 (CRUD, 当前婴儿选择)
 - `RecordsProvider` (`lib/providers/records_provider.dart`) - 管理所有记录类型 (喂养, 睡眠, 尿布, 成长, 辅食)
+- `VaccineProvider` (`lib/providers/vaccine_provider.dart`) - 管理疫苗接种记录和提醒
 
 ### 数据层：SQLite
 
 - `DatabaseHelper` 单例 (`lib/database/database_helper.dart`) 管理所有数据库操作
-- 通过 `version` 字段支持数据库迁移 (v1 → v2 → v3 → v4)
+- 通过 `version` 字段支持数据库迁移 (v1 → v2 → v3 → v4 → v5)
 - **已知问题**: Web 平台抛出 `UnsupportedError` 用于 SQLite
 
 ### 模型层
 
 - `BaseRecord` (`lib/models/base_record.dart`) - 抽象基类，具有通用字段 (id, babyId, createdAt)
-- 所有记录模型继承自 BaseRecord: `FeedingRecord`, `SleepRecord`, `DiaperRecord`, `GrowthRecord`, `SolidFoodRecord`
+- 所有记录模型继承自 BaseRecord: `FeedingRecord`, `SleepRecord`, `DiaperRecord`, `GrowthRecord`, `SolidFoodRecord`, `VaccineRecord`
 - 模型包括 `toMap()`/`fromMap()` 用于数据库序列化和 `toJson()`/`fromJson()` 用于 API
 
 ### 服务层
 
 - `ThemeService` (`lib/services/theme_service.dart`) - 主题设置管理
 - `FoodIngredientService` (`lib/services/food_ingredient_service.dart`) - 食材列表管理，支持自定义食材持久化
+- `VaccineScheduleService` (`lib/services/vaccine_schedule_service.dart`) - 疫苗接种时间计算服务
+- `NotificationService` (`lib/services/notification_service.dart`) - 本地通知服务，支持喂养、睡眠、尿布、疫苗提醒
 
 ### UI 层
 
@@ -101,6 +104,7 @@ flutter pub run flutter_launcher_icons
 | diaper_records | id, babyId, changeTime, type, status |
 | growth_records | id, babyId, recordDate, height, weight, headCircumference |
 | solid_food_records | id, babyId, mealTime, foodName, amount, texture, ingredients, notes |
+| vaccine_records | id, babyId, vaccinationTime, vaccineName, vaccineCode, status, hospital, batchNumber, notes |
 
 ### 喂养类型
 | 类型 | 显示 | 单位 |
@@ -122,13 +126,21 @@ flutter pub run flutter_launcher_icons
 - 支持自定义添加/删除食材
 - 食材列表通过 `SharedPreferences` 持久化 (`food_ingredients` key)
 
+### 疫苗接种
+- 内置中国国家免疫规划11种免费疫苗（共22剂次）
+- 疫苗列表：乙肝、卡介苗、脊灰、百白破、麻腮风、乙脑、A群流脑、A+C群流脑、甲肝、白破
+- 根据宝宝出生日期自动计算各疫苗应接种时间
+- 支持接种记录（已完成/待接种/已过期状态）
+- 支持接种提醒（提前1天上午9点通知）
+- 独立的疫苗接种计划页面，按月龄显示所有疫苗安排
+
 ## UI 主题
 
 - Material 3 搭配粉色配色方案
 - 卡片圆角半径：16-20px
 - 底部表单：顶部 24px 圆角，带拖拽手柄
 - FAB：渐变背景，带圆角阴影
-- 每页主题颜色：喂养(粉色), 睡眠(蓝色), 尿布(绿色), 成长(紫色)
+- 每页主题颜色：喂养(粉色), 睡眠(蓝色), 尿布(绿色), 成长(紫色), 疫苗(蓝绿色)
 
 ## 已知问题
 
