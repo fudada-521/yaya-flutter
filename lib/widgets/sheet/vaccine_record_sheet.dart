@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/vaccine_record.dart';
@@ -160,6 +162,11 @@ class _VaccineRecordSheetState extends State<VaccineRecordSheet> {
       return widget.scheduleItem!.doseNumber;
     }
     if (widget.recordToEdit != null) {
+      // 优先使用记录中存储的 doseNumber
+      if (widget.recordToEdit!.doseNumber != null) {
+        return widget.recordToEdit!.doseNumber!;
+      }
+      // 回退到日期推断逻辑（兼容旧数据）
       final vaccine = VaccinePlanData.findByName(widget.recordToEdit!.vaccineName);
       if (vaccine != null) {
         for (int i = 0; i < vaccine.recommendedMonths.length; i++) {
@@ -199,6 +206,10 @@ class _VaccineRecordSheetState extends State<VaccineRecordSheet> {
 
     setState(() => _isLoading = true);
 
+    // 在 await 之前保存 ScaffoldMessenger 和 Navigator 引用
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+
     try {
       final record = VaccineRecord(
         id: widget.recordToEdit?.id,
@@ -209,6 +220,7 @@ class _VaccineRecordSheetState extends State<VaccineRecordSheet> {
         status: VaccineRecord.statusCompleted, // 默认已完成
         hospital: _hospitalController.text.isEmpty ? null : _hospitalController.text,
         injectionSite: _injectionSiteController.text.isEmpty ? null : _injectionSiteController.text,
+        doseNumber: widget.scheduleItem?.doseNumber ?? widget.recordToEdit?.doseNumber,
       );
 
       final vaccineProvider = Provider.of<VaccineProvider>(context, listen: false);
@@ -220,24 +232,24 @@ class _VaccineRecordSheetState extends State<VaccineRecordSheet> {
 
       // 刷新提醒
       await vaccineProvider.refreshReminders(currentBaby);
-
-      if (mounted) {
-        Navigator.pop(context);
-      }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('保存失败: $e'),
-            backgroundColor: Colors.red[400],
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
+      log("保存疫苗记录失败: $e");
+      scaffoldMessenger.showSnackBar(
+        SnackBar(
+          content: Text('保存失败: $e'),
+          backgroundColor: Colors.red[400],
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
       }
+    }
+
+    // 在 finally 之后关闭 sheet（无论成功或失败）
+    if (mounted) {
+      navigator.pop();
     }
   }
 

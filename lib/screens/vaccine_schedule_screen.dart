@@ -105,17 +105,23 @@ class _VaccineScheduleScreenState extends State<VaccineScheduleScreen> {
     final Map<String, VaccineRecord> completedIndex = {};
     for (final record in completedRecords) {
       if (record.vaccineCode != null) {
-        // 尝试确定剂次
-        final vaccine = VaccinePlanData.findByName(record.vaccineName);
-        if (vaccine != null) {
-          for (int i = 0; i < vaccine.recommendedMonths.length; i++) {
-            final doseMonth = vaccine.recommendedMonths[i];
-            final doseDate = vaccine.calculateDate(baby.birthDate, doseMonth);
-            if (doseDate.year == record.vaccinationTime.year &&
-                doseDate.month == record.vaccinationTime.month &&
-                doseDate.day == record.vaccinationTime.day) {
-              final key = '${record.vaccineCode}_${i + 1}';
-              completedIndex[key] = record;
+        // 优先使用记录中存储的 doseNumber
+        if (record.doseNumber != null) {
+          final key = '${record.vaccineCode}_${record.doseNumber}';
+          completedIndex[key] = record;
+        } else {
+          // 回退到日期匹配逻辑（兼容旧数据）
+          final vaccine = VaccinePlanData.findByName(record.vaccineName);
+          if (vaccine != null) {
+            for (int i = 0; i < vaccine.recommendedMonths.length; i++) {
+              final doseMonth = vaccine.recommendedMonths[i];
+              final doseDate = vaccine.calculateDate(baby.birthDate, doseMonth);
+              if (doseDate.year == record.vaccinationTime.year &&
+                  doseDate.month == record.vaccinationTime.month &&
+                  doseDate.day == record.vaccinationTime.day) {
+                final key = '${record.vaccineCode}_${i + 1}';
+                completedIndex[key] = record;
+              }
             }
           }
         }
@@ -132,11 +138,12 @@ class _VaccineScheduleScreenState extends State<VaccineScheduleScreen> {
       pendingByMonth.putIfAbsent(item.doseMonth, () => []).add(item);
     }
 
-    // 按实际接种月龄分组已完成疫苗
+    // 按推荐接种月龄分组已完成疫苗（而非实际接种时间）
     final Map<int, List<VaccineRecord>> completedByMonth = {};
     for (final record in completedRecords) {
-      final doseMonth = _getVaccinationMonth(baby, record);
-      completedByMonth.putIfAbsent(doseMonth, () => []).add(record);
+      // 找到该记录的推荐月龄
+      final recommendedMonth = _getRecommendedMonth(baby, record, provider);
+      completedByMonth.putIfAbsent(recommendedMonth, () => []).add(record);
     }
 
     return ListView.builder(
@@ -175,6 +182,52 @@ class _VaccineScheduleScreenState extends State<VaccineScheduleScreen> {
     final monthsDiff = (record.vaccinationTime.year - baby.birthDate.year) * 12 +
         (record.vaccinationTime.month - baby.birthDate.month);
     return monthsDiff.clamp(0, 72).toInt();
+  }
+
+  /// 获取疫苗推荐接种月龄（用于排序，不随实际接种时间变化）
+  int _getRecommendedMonth(Baby baby, VaccineRecord record, VaccineProvider provider) {
+    final vaccine = VaccinePlanData.findByName(record.vaccineName);
+    if (vaccine == null) return 0;
+
+    // 优先使用记录中存储的 doseNumber
+    if (record.doseNumber != null && record.doseNumber! >= 1 && record.doseNumber! <= vaccine.recommendedMonths.length) {
+      return vaccine.recommendedMonths[record.doseNumber! - 1];
+    }
+
+    // 使用与 _getDoseInfo 相同的逻辑确定剂次
+    for (int i = 0; i < vaccine.recommendedMonths.length; i++) {
+      final doseMonth = vaccine.recommendedMonths[i];
+      final doseDate = vaccine.calculateDate(baby.birthDate, doseMonth);
+      if (doseDate.year == record.vaccinationTime.year &&
+          doseDate.month == record.vaccinationTime.month &&
+          doseDate.day == record.vaccinationTime.day) {
+        // 找到匹配的推荐月龄
+        return doseMonth;
+      }
+    }
+
+    // 如果找不到精确匹配（接种日期与推荐日期不同），按剂次顺序推断
+    // 假设用户按时接种，剂次按推荐月龄顺序
+    final doseNumber = _getDoseNumberFromRecord(record, vaccine, baby, provider);
+    if (doseNumber >= 1 && doseNumber <= vaccine.recommendedMonths.length) {
+      return vaccine.recommendedMonths[doseNumber - 1];
+    }
+
+    // 如果无法确定，按日期计算月龄差
+    final monthsDiff = (record.vaccinationTime.year - baby.birthDate.year) * 12 +
+        (record.vaccinationTime.month - baby.birthDate.month);
+    return monthsDiff.clamp(0, 72).toInt();
+  }
+
+  /// 从记录中获取剂次号
+  int _getDoseNumberFromRecord(VaccineRecord record, VaccinePlanItem vaccine, Baby baby, VaccineProvider provider) {
+    // 统计同一疫苗在此时之前已完成的剂次
+    final records = provider.getRecordsForBaby(baby.id)
+        .where((r) => r.status == VaccineRecord.statusCompleted &&
+                      r.vaccineName == record.vaccineName &&
+                      r.vaccinationTime.isBefore(record.vaccinationTime))
+        .toList();
+    return records.length + 1;
   }
 
   /// 构建时间轴单项
@@ -392,22 +445,23 @@ class _VaccineScheduleScreenState extends State<VaccineScheduleScreen> {
               ],
             ),
             const SizedBox(height: 8),
-            // 第四行：接种记录按钮
+            // 第四行：查看接种记录按钮（已完成卡片-绿色边框）
             GestureDetector(
               onTap: () => RecordBottomSheetHelper.showEditVaccineRecord(context, record),
               child: Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 6),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF26A69A).withAlpha(25),
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: Colors.green[400]!),
                 ),
-                child: const Text(
-                  '接种记录',
+                child: Text(
+                  '查看接种记录',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 12,
-                    color: Color(0xFF26A69A),
+                    color: Colors.green[400],
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -422,7 +476,11 @@ class _VaccineScheduleScreenState extends State<VaccineScheduleScreen> {
   /// 从已完成记录获取剂次信息
   String _getDoseInfo(VaccineRecord record, VaccinePlanItem? vaccine, Baby baby) {
     if (vaccine == null) return '';
-    // 尝试匹配剂次
+    // 优先使用记录中存储的 doseNumber
+    if (record.doseNumber != null && record.doseNumber! >= 1 && record.doseNumber! <= vaccine.totalDoses) {
+      return '第${record.doseNumber}/${vaccine.totalDoses}针';
+    }
+    // 回退到日期匹配逻辑（兼容旧数据）
     for (int i = 0; i < vaccine.recommendedMonths.length; i++) {
       final doseMonth = vaccine.recommendedMonths[i];
       final doseDate = vaccine.calculateDate(baby.birthDate, doseMonth);
@@ -440,16 +498,19 @@ class _VaccineScheduleScreenState extends State<VaccineScheduleScreen> {
     final vaccine = VaccinePlanData.findByName(record.vaccineName);
     if (vaccine == null) return;
 
-    // 尝试确定剂次
-    int doseNumber = 1;
-    for (int i = 0; i < vaccine.recommendedMonths.length; i++) {
-      final doseMonth = vaccine.recommendedMonths[i];
-      final doseDate = vaccine.calculateDate(baby.birthDate, doseMonth);
-      if (doseDate.year == record.vaccinationTime.year &&
-          doseDate.month == record.vaccinationTime.month &&
-          doseDate.day == record.vaccinationTime.day) {
-        doseNumber = i + 1;
-        break;
+    // 优先使用记录中存储的 doseNumber
+    int doseNumber = record.doseNumber ?? 1;
+    if (record.doseNumber == null) {
+      // 回退到日期匹配逻辑（兼容旧数据）
+      for (int i = 0; i < vaccine.recommendedMonths.length; i++) {
+        final doseMonth = vaccine.recommendedMonths[i];
+        final doseDate = vaccine.calculateDate(baby.birthDate, doseMonth);
+        if (doseDate.year == record.vaccinationTime.year &&
+            doseDate.month == record.vaccinationTime.month &&
+            doseDate.day == record.vaccinationTime.day) {
+          doseNumber = i + 1;
+          break;
+        }
       }
     }
 
@@ -467,6 +528,7 @@ class _VaccineScheduleScreenState extends State<VaccineScheduleScreen> {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final isOverdue = item.scheduledDate.isBefore(today);
+    final isFuture = item.scheduledDate.isAfter(today);
 
     return GestureDetector(
       onTap: () => _showVaccineDetail(item),
@@ -476,7 +538,7 @@ class _VaccineScheduleScreenState extends State<VaccineScheduleScreen> {
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isOverdue ? Colors.red[200]! : (isPast ? Colors.orange[200]! : const Color(0xFF26A69A).withAlpha(50)),
+            color: isOverdue ? Colors.red[200]! : (isPast ? Colors.orange[200]! : Colors.grey[300]!),
           ),
           boxShadow: [
             BoxShadow(
@@ -513,14 +575,14 @@ class _VaccineScheduleScreenState extends State<VaccineScheduleScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
-                    color: isOverdue ? Colors.red[100] : Colors.orange[100],
+                    color: isOverdue ? Colors.red[100] : (isFuture ? Colors.grey[200] : Colors.orange[100]),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
-                    isOverdue ? '已过期' : '待接种',
+                    isOverdue ? '已过期' : (isFuture ? '未到时间' : '待接种'),
                     style: TextStyle(
                       fontSize: 10,
-                      color: isOverdue ? Colors.red : Colors.orange[700],
+                      color: isOverdue ? Colors.red : (isFuture ? Colors.grey[600] : Colors.orange[700]),
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -565,22 +627,25 @@ class _VaccineScheduleScreenState extends State<VaccineScheduleScreen> {
               ],
             ),
             const SizedBox(height: 8),
-            // 第四行：记录接种按钮
+            // 第四行：记录接种按钮（非填充，颜色与状态一致）
             GestureDetector(
               onTap: () => RecordBottomSheetHelper.showAddVaccineRecord(context, scheduleItem: item),
               child: Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 6),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF26A69A).withAlpha(25),
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(6),
+                  border: Border.all(
+                    color: isOverdue ? Colors.red[400]! : (isFuture ? Colors.grey[400]! : Colors.orange[400]!),
+                  ),
                 ),
-                child: const Text(
+                child: Text(
                   '记录接种',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 12,
-                    color: Color(0xFF26A69A),
+                    color: isOverdue ? Colors.red[400] : (isFuture ? Colors.grey[600] : Colors.orange[400]),
                     fontWeight: FontWeight.w500,
                   ),
                 ),

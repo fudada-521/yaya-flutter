@@ -42,6 +42,13 @@ class NotificationService {
     _isInitialized = true;
   }
 
+  /// 确保时区已初始化
+  void _ensureTimeZonesInitialized() {
+    if (!_isInitialized) {
+      tz.initializeTimeZones();
+    }
+  }
+
   /// 请求通知权限
   Future<bool> requestPermissions() async {
     final android = _notifications.resolvePlatformSpecificImplementation<
@@ -71,6 +78,9 @@ class NotificationService {
     required int hoursInterval,
     String? babyName,
   }) async {
+    // 确保时区已初始化
+    _ensureTimeZonesInitialized();
+
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('feeding_reminder_enabled', true);
     await prefs.setInt('feeding_reminder_interval', hoursInterval);
@@ -118,6 +128,9 @@ class NotificationService {
     required int hoursAfterWake,
     String? babyName,
   }) async {
+    // 确保时区已初始化
+    _ensureTimeZonesInitialized();
+
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('sleep_reminder_enabled', true);
     await prefs.setInt('sleep_reminder_interval', hoursAfterWake);
@@ -165,6 +178,9 @@ class NotificationService {
     required int hoursInterval,
     String? babyName,
   }) async {
+    // 确保时区已初始化
+    _ensureTimeZonesInitialized();
+
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('diaper_reminder_enabled', true);
     await prefs.setInt('diaper_reminder_interval', hoursInterval);
@@ -220,6 +236,9 @@ class NotificationService {
     String? babyName,
     int reminderDaysBefore = 1,
   }) async {
+    // 确保时区已初始化
+    _ensureTimeZonesInitialized();
+
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('vaccine_reminder_enabled', true);
 

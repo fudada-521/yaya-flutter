@@ -62,7 +62,7 @@ class DatabaseHelper {
     // 移动端使用默认的 sqflite
     return await openDatabase(
       path,
-      version: 6,
+      version: 7,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -145,6 +145,12 @@ class DatabaseHelper {
       ''');
       await db.execute('DROP TABLE vaccine_records');
       await db.execute('ALTER TABLE vaccine_records_new RENAME TO vaccine_records');
+    }
+    if (oldVersion < 7) {
+      // v7: 添加 doseNumber 列到疫苗记录表
+      await db.execute('''
+        ALTER TABLE vaccine_records ADD COLUMN doseNumber INTEGER
+      ''');
     }
   }
 

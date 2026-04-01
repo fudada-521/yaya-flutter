@@ -17,6 +17,7 @@ class VaccineRecord extends BaseRecord {
   final String? hospital;         // 接种机构
   final String? injectionSite;    // 接种位置
   final String? notes;           // 备注
+  final int? doseNumber;          // 剂次（从1开始，如第1针、第2针）
 
   VaccineRecord({
     super.id,
@@ -28,6 +29,7 @@ class VaccineRecord extends BaseRecord {
     this.hospital,
     this.injectionSite,
     this.notes,
+    this.doseNumber,
     super.createdAt,
   });
 
@@ -64,6 +66,7 @@ class VaccineRecord extends BaseRecord {
       'hospital': hospital,
       'injectionSite': injectionSite,
       'notes': notes,
+      'doseNumber': doseNumber,
     });
     return map;
   }
@@ -79,6 +82,7 @@ class VaccineRecord extends BaseRecord {
       hospital: map['hospital'],
       injectionSite: map['injectionSite'],
       notes: map['notes'],
+      doseNumber: map['doseNumber'],
       createdAt: DateTime.parse(map['createdAt']),
     );
   }
@@ -95,6 +99,7 @@ class VaccineRecord extends BaseRecord {
     String? hospital,
     String? injectionSite,
     String? notes,
+    int? doseNumber,
   }) {
     return VaccineRecord(
       id: id ?? this.id,
@@ -107,6 +112,7 @@ class VaccineRecord extends BaseRecord {
       hospital: hospital ?? this.hospital,
       injectionSite: injectionSite ?? this.injectionSite,
       notes: notes ?? this.notes,
+      doseNumber: doseNumber ?? this.doseNumber,
     );
   }
 }

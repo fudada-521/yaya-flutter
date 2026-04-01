@@ -60,7 +60,12 @@ class VaccineProvider extends ChangeNotifier {
         .toList();
 
     return completedRecords.map((r) {
-      // 查找对应的剂次
+      // 优先使用记录中存储的 doseNumber
+      if (r.doseNumber != null) {
+        return '${r.vaccineName}_${r.doseNumber}';
+      }
+
+      // 如果没有存储 doseNumber，则回退到日期匹配逻辑（兼容旧数据）
       final vaccine = VaccinePlanData.findByName(r.vaccineName);
       if (vaccine != null) {
         final doseIndex = vaccine.recommendedMonths.indexWhere((m) {
