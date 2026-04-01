@@ -8,9 +8,12 @@ import 'screens/sleep_screen.dart';
 import 'screens/diaper_screen.dart';
 import 'screens/growth_screen.dart';
 import 'screens/solid_food_screen.dart';
+import 'screens/vaccine_screen.dart';
+import 'screens/vaccine_schedule_screen.dart';
 import 'screens/baby_profile_screen.dart';
 import 'providers/baby_provider.dart';
 import 'providers/records_provider.dart';
+import 'providers/vaccine_provider.dart';
 
 /// 应用入口文件
 ///
@@ -32,6 +35,7 @@ class YayaDiaryApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => BabyProvider()),
         ChangeNotifierProvider(create: (_) => RecordsProvider()),
+        ChangeNotifierProvider(create: (_) => VaccineProvider()),
       ],
       child: MaterialApp(
         title: '芽芽日记 - 婴儿生活记录',
@@ -62,6 +66,8 @@ class YayaDiaryApp extends StatelessWidget {
           '/diaper': (context) => const DiaperScreen(),
           '/growth': (context) => const GrowthScreen(),
           '/solid-food': (context) => const SolidFoodScreen(),
+          '/vaccine': (context) => const VaccineScreen(),
+          '/vaccine-schedule': (context) => const VaccineScheduleScreen(),
           '/baby-profile': (context) => const BabyProfileScreen(),
         },
       ),

@@ -59,6 +59,14 @@ class RecordsPage extends StatelessWidget {
           color: const Color(0xFFFFB74D),
           onTap: () => Navigator.pushNamed(context, '/solid-food'),
         ),
+        _buildRecordCategoryCard(
+          context,
+          icon: Icons.vaccines,
+          title: '疫苗接种',
+          subtitle: '记录疫苗、接种时间',
+          color: const Color(0xFF26A69A),
+          onTap: () => Navigator.pushNamed(context, '/vaccine'),
+        ),
       ],
     );
   }

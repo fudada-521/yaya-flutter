@@ -7,6 +7,7 @@ import '../models/sleep_record.dart';
 import '../models/diaper_record.dart';
 import '../models/growth_record.dart';
 import '../models/solid_food_record.dart';
+import '../models/vaccine_record.dart';
 
 /// 数据库管理单例类
 ///
@@ -18,8 +19,9 @@ import '../models/solid_food_record.dart';
 /// - v2: 添加 feeding_records 表的 duration 列
 /// - v3: 添加左右侧时长列 left_duration, right_duration, mixed_duration
 /// - v4: 添加 solid_food_records 表（辅食独立记录）
+/// - v5: 添加 vaccine_records 表（疫苗接种记录）
 ///
-/// 支持的表：babies、feeding_records、sleep_records、diaper_records、growth_records、solid_food_records
+/// 支持的表：babies、feeding_records、sleep_records、diaper_records、growth_records、solid_food_records、vaccine_records
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
   factory DatabaseHelper() => _instance;
@@ -60,7 +62,7 @@ class DatabaseHelper {
     // 移动端使用默认的 sqflite
     return await openDatabase(
       path,
-      version: 4,
+      version: 5,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -96,6 +98,24 @@ class DatabaseHelper {
           amount REAL,
           texture TEXT,
           ingredients TEXT,
+          notes TEXT,
+          createdAt TEXT NOT NULL,
+          FOREIGN KEY (babyId) REFERENCES babies (id) ON DELETE CASCADE
+        )
+      ''');
+    }
+    if (oldVersion < 5) {
+      // v5: 添加疫苗接种记录表
+      await db.execute('''
+        CREATE TABLE vaccine_records (
+          id TEXT PRIMARY KEY,
+          babyId TEXT NOT NULL,
+          vaccinationTime TEXT NOT NULL,
+          vaccineName TEXT NOT NULL,
+          vaccineCode TEXT,
+          status TEXT NOT NULL DEFAULT 'pending',
+          hospital TEXT,
+          batchNumber TEXT,
           notes TEXT,
           createdAt TEXT NOT NULL,
           FOREIGN KEY (babyId) REFERENCES babies (id) ON DELETE CASCADE
@@ -198,6 +218,23 @@ class DatabaseHelper {
         FOREIGN KEY (babyId) REFERENCES babies (id) ON DELETE CASCADE
       )
     ''');
+
+    // 疫苗接种记录表
+    await db.execute('''
+      CREATE TABLE vaccine_records (
+        id TEXT PRIMARY KEY,
+        babyId TEXT NOT NULL,
+        vaccinationTime TEXT NOT NULL,
+        vaccineName TEXT NOT NULL,
+        vaccineCode TEXT,
+        status TEXT NOT NULL DEFAULT 'pending',
+        hospital TEXT,
+        batchNumber TEXT,
+        notes TEXT,
+        createdAt TEXT NOT NULL,
+        FOREIGN KEY (babyId) REFERENCES babies (id) ON DELETE CASCADE
+      )
+    ''');
   }
 
   // Baby operations
@@ -230,6 +267,7 @@ class DatabaseHelper {
     await db.delete('diaper_records', where: 'babyId = ?', whereArgs: [babyId]);
     await db.delete('growth_records', where: 'babyId = ?', whereArgs: [babyId]);
     await db.delete('solid_food_records', where: 'babyId = ?', whereArgs: [babyId]);
+    await db.delete('vaccine_records', where: 'babyId = ?', whereArgs: [babyId]);
     // 最后删除宝宝本身
     await db.delete('babies', where: 'id = ?', whereArgs: [babyId]);
   }
@@ -242,6 +280,7 @@ class DatabaseHelper {
     await db.delete('diaper_records');
     await db.delete('growth_records');
     await db.delete('solid_food_records');
+    await db.delete('vaccine_records');
     await db.delete('babies');
   }
 
@@ -430,6 +469,44 @@ class DatabaseHelper {
     final db = await database;
     await db.delete(
       'solid_food_records',
+      where: 'id = ?',
+      whereArgs: [recordId],
+    );
+  }
+
+  // Vaccine record operations (疫苗接种记录)
+  Future<List<VaccineRecord>> getVaccineRecords([String? babyId]) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = babyId == null
+        ? await db.query('vaccine_records', orderBy: 'vaccinationTime DESC')
+        : await db.query(
+            'vaccine_records',
+            where: 'babyId = ?',
+            whereArgs: [babyId],
+            orderBy: 'vaccinationTime DESC',
+          );
+    return List.generate(maps.length, (i) => VaccineRecord.fromMap(maps[i]));
+  }
+
+  Future<void> insertVaccineRecord(VaccineRecord record) async {
+    final db = await database;
+    await db.insert('vaccine_records', record.toMap());
+  }
+
+  Future<void> updateVaccineRecord(VaccineRecord record) async {
+    final db = await database;
+    await db.update(
+      'vaccine_records',
+      record.toMap(),
+      where: 'id = ?',
+      whereArgs: [record.id],
+    );
+  }
+
+  Future<void> deleteVaccineRecord(String recordId) async {
+    final db = await database;
+    await db.delete(
+      'vaccine_records',
       where: 'id = ?',
       whereArgs: [recordId],
     );

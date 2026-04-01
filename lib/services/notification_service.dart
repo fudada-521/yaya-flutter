@@ -18,6 +18,7 @@ class NotificationService {
   static const int _feedingPrefix = 1000;
   static const int _sleepPrefix = 2000;
   static const int _diaperPrefix = 3000;
+  static const int _vaccinePrefix = 4000;
 
   /// 初始化通知服务
   Future<void> initialize() async {
@@ -205,6 +206,84 @@ class NotificationService {
     await _notifications.cancel(id);
   }
 
+  /// 调度疫苗提醒
+  ///
+  /// [babyId] - 宝宝ID
+  /// [vaccineName] - 疫苗名称
+  /// [scheduledDate] - 计划接种日期
+  /// [babyName] - 宝宝姓名（可选）
+  /// [reminderDaysBefore] - 提前几天提醒，默认1天
+  Future<void> scheduleVaccineReminder({
+    required String babyId,
+    required String vaccineName,
+    required DateTime scheduledDate,
+    String? babyName,
+    int reminderDaysBefore = 1,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('vaccine_reminder_enabled', true);
+
+    // 计算提醒时间（提前X天上午9点）
+    final reminderDate = scheduledDate.subtract(Duration(days: reminderDaysBefore));
+    final reminderTime = DateTime(
+      reminderDate.year,
+      reminderDate.month,
+      reminderDate.day,
+      9, // 上午9点
+      0,
+    );
+
+    // 如果提醒时间已过，不设置提醒
+    if (reminderTime.isBefore(DateTime.now())) return;
+
+    // 生成唯一ID
+    final id = _vaccinePrefix + vaccineName.hashCode + scheduledDate.day;
+
+    await _notifications.zonedSchedule(
+      id,
+      '疫苗接种提醒',
+      babyName != null
+          ? '$babyName 明天该接种$vaccineName了'
+          : '宝宝明天该接种$vaccineName了',
+      tz.TZDateTime.from(reminderTime, tz.local),
+      NotificationDetails(
+        android: AndroidNotificationDetails(
+          'vaccine_channel',
+          '疫苗接种提醒',
+          channelDescription: '婴儿疫苗接种提醒通知',
+          importance: Importance.high,
+          priority: Priority.high,
+          icon: '@mipmap/ic_launcher',
+        ),
+        iOS: const DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+        ),
+      ),
+      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+      uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
+    );
+  }
+
+  /// 取消单个疫苗提醒
+  Future<void> cancelVaccineReminder(String vaccineName, DateTime scheduledDate) async {
+    final id = _vaccinePrefix + vaccineName.hashCode + scheduledDate.day;
+    await _notifications.cancel(id);
+  }
+
+  /// 取消宝宝的所有疫苗提醒
+  Future<void> cancelAllVaccineReminders(String babyId) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('vaccine_reminder_enabled', false);
+
+    // 取消所有疫苗相关通知（通过遍历可能的时间戳）
+    // 由于ID是基于疫苗名称和日期生成的，我们需要取消所有疫苗相关的通知
+    for (int i = 0; i < 1000; i++) {
+      await _notifications.cancel(_vaccinePrefix + i);
+    }
+  }
+
   /// 取消所有通知
   Future<void> cancelAllNotifications() async {
     await _notifications.cancelAll();
@@ -217,6 +296,7 @@ class NotificationService {
       'feeding': prefs.getBool('feeding_reminder_enabled') ?? false,
       'sleep': prefs.getBool('sleep_reminder_enabled') ?? false,
       'diaper': prefs.getBool('diaper_reminder_enabled') ?? false,
+      'vaccine': prefs.getBool('vaccine_reminder_enabled') ?? false,
     };
   }
 }

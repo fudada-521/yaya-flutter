@@ -6,9 +6,12 @@ import '../models/sleep_record.dart';
 import '../models/diaper_record.dart';
 import '../models/growth_record.dart';
 import '../models/solid_food_record.dart';
+import '../models/vaccine_record.dart';
+import '../models/vaccine_plan.dart';
 import '../providers/baby_provider.dart';
 import '../providers/records_provider.dart';
 import '../widgets/sheet/solid_food_record_sheet.dart';
+import '../widgets/sheet/vaccine_record_sheet.dart';
 import '../widgets/sheet/sheets.dart';
 import '../widgets/sheet/components/components.dart';
 
@@ -131,6 +134,17 @@ class RecordBottomSheetHelper {
 
   static void showEditSolidFoodRecord(BuildContext context, SolidFoodRecord record) {
     SolidFoodRecordSheetWrapper(recordToEdit: record).show(context);
+  }
+
+  // ==================== 疫苗记录 ====================
+
+  static void showAddVaccineRecord(BuildContext context, {VaccineScheduleItem? scheduleItem}) {
+    if (!_checkBabyExists(context)) return;
+    VaccineRecordSheet(scheduleItem: scheduleItem).show(context);
+  }
+
+  static void showEditVaccineRecord(BuildContext context, VaccineRecord record) {
+    VaccineRecordSheet(recordToEdit: record).show(context);
   }
 
   // 快速成长记录
