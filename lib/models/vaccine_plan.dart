@@ -1,3 +1,5 @@
+import 'vaccine_record.dart';
+
 /// 疫苗计划数据模型
 ///
 /// 存储中国国家免疫规划疫苗列表信息，
@@ -59,6 +61,43 @@ class VaccineScheduleItem {
 
   /// 获取显示名称
   String get displayName => '${vaccine.name} $doseDisplay';
+}
+
+/// 自定义疫苗接种计划项
+///
+/// 用于动态计算用户自定义疫苗的接种计划。
+class CustomVaccineScheduleItem {
+  final VaccineRecord record;      // 原始记录（第一剂）
+  final DateTime scheduledDate;    // 计划接种日期
+  final int doseNumber;            // 当前剂次
+  final int doseMonth;             // 接种月龄
+  final bool isLastDose;           // 是否最后一剂
+
+  const CustomVaccineScheduleItem({
+    required this.record,
+    required this.scheduledDate,
+    required this.doseNumber,
+    required this.doseMonth,
+    required this.isLastDose,
+  });
+
+  /// 获取剂次显示文本
+  String get doseDisplay {
+    final total = record.totalDoses ?? 1;
+    return '第$doseNumber/$total针';
+  }
+
+  /// 获取显示名称
+  String get displayName => '${record.vaccineName} $doseDisplay';
+
+  /// 获取疫苗名称
+  String get vaccineName => record.vaccineName;
+
+  /// 获取预防疾病
+  String get disease => record.disease ?? '未知';
+
+  /// 是否免费
+  bool get isFree => false; // 自定义疫苗默认自费
 }
 
 /// 中国国家免疫规划疫苗列表

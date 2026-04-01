@@ -19,6 +19,13 @@ class VaccineRecord extends BaseRecord {
   final String? notes;           // 备注
   final int? doseNumber;          // 剂次（从1开始，如第1针、第2针）
 
+  // 自定义疫苗字段
+  final bool isCustom;            // 是否为自定义疫苗
+  final int? totalDoses;          // 总剂次数（如 3 针）
+  final int? doseIntervalMonths;  // 剂次间隔月数
+  final int? firstDoseMonth;      // 首剂推荐月龄
+  final String? disease;          // 预防疾病
+
   VaccineRecord({
     super.id,
     required super.babyId,
@@ -30,6 +37,11 @@ class VaccineRecord extends BaseRecord {
     this.injectionSite,
     this.notes,
     this.doseNumber,
+    this.isCustom = false,
+    this.totalDoses,
+    this.doseIntervalMonths,
+    this.firstDoseMonth,
+    this.disease,
     super.createdAt,
   });
 
@@ -67,6 +79,11 @@ class VaccineRecord extends BaseRecord {
       'injectionSite': injectionSite,
       'notes': notes,
       'doseNumber': doseNumber,
+      'isCustom': isCustom ? 1 : 0,
+      'totalDoses': totalDoses,
+      'doseIntervalMonths': doseIntervalMonths,
+      'firstDoseMonth': firstDoseMonth,
+      'disease': disease,
     });
     return map;
   }
@@ -83,6 +100,11 @@ class VaccineRecord extends BaseRecord {
       injectionSite: map['injectionSite'],
       notes: map['notes'],
       doseNumber: map['doseNumber'],
+      isCustom: map['isCustom'] == 1,
+      totalDoses: map['totalDoses'],
+      doseIntervalMonths: map['doseIntervalMonths'],
+      firstDoseMonth: map['firstDoseMonth'],
+      disease: map['disease'],
       createdAt: DateTime.parse(map['createdAt']),
     );
   }
@@ -100,6 +122,11 @@ class VaccineRecord extends BaseRecord {
     String? injectionSite,
     String? notes,
     int? doseNumber,
+    bool? isCustom,
+    int? totalDoses,
+    int? doseIntervalMonths,
+    int? firstDoseMonth,
+    String? disease,
   }) {
     return VaccineRecord(
       id: id ?? this.id,
@@ -113,6 +140,11 @@ class VaccineRecord extends BaseRecord {
       injectionSite: injectionSite ?? this.injectionSite,
       notes: notes ?? this.notes,
       doseNumber: doseNumber ?? this.doseNumber,
+      isCustom: isCustom ?? this.isCustom,
+      totalDoses: totalDoses ?? this.totalDoses,
+      doseIntervalMonths: doseIntervalMonths ?? this.doseIntervalMonths,
+      firstDoseMonth: firstDoseMonth ?? this.firstDoseMonth,
+      disease: disease ?? this.disease,
     );
   }
 }

@@ -20,6 +20,9 @@ import '../models/vaccine_record.dart';
 /// - v3: 添加左右侧时长列 left_duration, right_duration, mixed_duration
 /// - v4: 添加 solid_food_records 表（辅食独立记录）
 /// - v5: 添加 vaccine_records 表（疫苗接种记录）
+/// - v6: 将 batchNumber 改为 injectionSite
+/// - v7: 添加 doseNumber 列到疫苗记录表
+/// - v8: 添加自定义疫苗字段（isCustom, totalDoses, doseIntervalMonths, firstDoseMonth, disease）
 ///
 /// 支持的表：babies、feeding_records、sleep_records、diaper_records、growth_records、solid_food_records、vaccine_records
 class DatabaseHelper {
@@ -62,7 +65,7 @@ class DatabaseHelper {
     // 移动端使用默认的 sqflite
     return await openDatabase(
       path,
-      version: 7,
+      version: 8,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -150,6 +153,24 @@ class DatabaseHelper {
       // v7: 添加 doseNumber 列到疫苗记录表
       await db.execute('''
         ALTER TABLE vaccine_records ADD COLUMN doseNumber INTEGER
+      ''');
+    }
+    if (oldVersion < 8) {
+      // v8: 添加自定义疫苗字段
+      await db.execute('''
+        ALTER TABLE vaccine_records ADD COLUMN isCustom INTEGER DEFAULT 0
+      ''');
+      await db.execute('''
+        ALTER TABLE vaccine_records ADD COLUMN totalDoses INTEGER
+      ''');
+      await db.execute('''
+        ALTER TABLE vaccine_records ADD COLUMN doseIntervalMonths INTEGER
+      ''');
+      await db.execute('''
+        ALTER TABLE vaccine_records ADD COLUMN firstDoseMonth INTEGER
+      ''');
+      await db.execute('''
+        ALTER TABLE vaccine_records ADD COLUMN disease TEXT
       ''');
     }
   }
@@ -261,6 +282,12 @@ class DatabaseHelper {
         hospital TEXT,
         injectionSite TEXT,
         notes TEXT,
+        doseNumber INTEGER,
+        isCustom INTEGER DEFAULT 0,
+        totalDoses INTEGER,
+        doseIntervalMonths INTEGER,
+        firstDoseMonth INTEGER,
+        disease TEXT,
         createdAt TEXT NOT NULL,
         FOREIGN KEY (babyId) REFERENCES babies (id) ON DELETE CASCADE
       )

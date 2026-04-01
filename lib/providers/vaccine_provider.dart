@@ -172,8 +172,8 @@ class VaccineProvider extends ChangeNotifier {
     // 先取消现有提醒
     await _notificationService.cancelAllVaccineReminders(baby.id);
 
+    // 内置疫苗提醒
     final pendingVaccines = getPendingVaccines(baby);
-
     for (final vaccine in pendingVaccines) {
       // 只为未来的疫苗设置提醒
       if (vaccine.scheduledDate.isAfter(DateTime.now())) {
@@ -183,6 +183,24 @@ class VaccineProvider extends ChangeNotifier {
           scheduledDate: vaccine.scheduledDate,
           babyName: baby.name,
         );
+      }
+    }
+
+    // 自定义疫苗提醒
+    final customRecords = _vaccineRecords
+        .where((r) => r.babyId == baby.id && r.status == VaccineRecord.statusCompleted && r.isCustom)
+        .toList();
+    if (customRecords.isNotEmpty) {
+      final pendingCustom = _scheduleService.getPendingCustomVaccines(baby, customRecords);
+      for (final item in pendingCustom) {
+        if (item.scheduledDate.isAfter(DateTime.now())) {
+          await _notificationService.scheduleVaccineReminder(
+            babyId: baby.id,
+            vaccineName: item.vaccineName,
+            scheduledDate: item.scheduledDate,
+            babyName: baby.name,
+          );
+        }
       }
     }
   }

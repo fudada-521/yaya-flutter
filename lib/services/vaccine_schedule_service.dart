@@ -1,5 +1,6 @@
 import '../models/baby.dart';
 import '../models/vaccine_plan.dart';
+import '../models/vaccine_record.dart';
 
 /// 疫苗计划计算服务
 ///
@@ -159,5 +160,121 @@ class VaccineScheduleService {
     } catch (_) {
       return null;
     }
+  }
+
+  /// 计算自定义疫苗的接种计划
+  ///
+  /// [baby] - 宝宝信息
+  /// [customRecords] - 自定义疫苗已完成记录列表（通常只传第一剂的记录）
+  /// 返回按接种日期排序的自定义疫苗待接种计划列表
+  List<CustomVaccineScheduleItem> calculateCustomVaccineSchedule(
+    Baby baby,
+    List<VaccineRecord> customRecords,
+  ) {
+    final List<CustomVaccineScheduleItem> schedule = [];
+
+    // 按疫苗名称分组，每组取第一条记录（第一剂）作为代表
+    final Map<String, VaccineRecord> firstDoseMap = {};
+    for (final record in customRecords) {
+      if (record.isCustom && record.doseNumber == 1) {
+        // 使用疫苗名称作为key
+        firstDoseMap[record.vaccineName] = record;
+      }
+    }
+
+    for (final firstDose in firstDoseMap.values) {
+      final totalDoses = firstDose.totalDoses ?? 1;
+      final intervalMonths = firstDose.doseIntervalMonths ?? 1;
+      final firstDoseMonth = firstDose.firstDoseMonth ?? 0;
+
+      // 计算已接种的剂次数
+      final completedDoses = customRecords
+          .where((r) => r.vaccineName == firstDose.vaccineName && r.isCustom)
+          .length;
+
+      // 如果已完成所有剂次，跳过
+      if (completedDoses >= totalDoses) continue;
+
+      // 计算下一剂的信息
+      final nextDoseNumber = completedDoses + 1;
+      final nextDoseMonth = firstDoseMonth + (nextDoseNumber - 1) * intervalMonths;
+      final nextScheduledDate = _calculateDate(baby.birthDate, nextDoseMonth);
+
+      schedule.add(CustomVaccineScheduleItem(
+        record: firstDose,
+        scheduledDate: nextScheduledDate,
+        doseNumber: nextDoseNumber,
+        doseMonth: nextDoseMonth,
+        isLastDose: nextDoseNumber >= totalDoses,
+      ));
+    }
+
+    // 按日期排序
+    schedule.sort((a, b) => a.scheduledDate.compareTo(b.scheduledDate));
+    return schedule;
+  }
+
+  /// 获取自定义疫苗的已过期项
+  List<CustomVaccineScheduleItem> getOverdueCustomVaccines(
+    Baby baby,
+    List<VaccineRecord> customRecords,
+  ) {
+    final schedule = calculateCustomVaccineSchedule(baby, customRecords);
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    return schedule.where((item) => item.scheduledDate.isBefore(today)).toList();
+  }
+
+  /// 获取自定义疫苗的即将到期项（未来30天）
+  List<CustomVaccineScheduleItem> getUpcomingCustomVaccines(
+    Baby baby,
+    List<VaccineRecord> customRecords, {
+    int daysAhead = 30,
+  }) {
+    final schedule = calculateCustomVaccineSchedule(baby, customRecords);
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final threshold = today.add(Duration(days: daysAhead));
+
+    return schedule.where((item) {
+      return !item.scheduledDate.isBefore(today) &&
+          item.scheduledDate.isAfter(threshold) == false;
+    }).toList();
+  }
+
+  /// 获取自定义疫苗的待接种项（已过期 + 即将到期）
+  List<CustomVaccineScheduleItem> getPendingCustomVaccines(
+    Baby baby,
+    List<VaccineRecord> customRecords,
+  ) {
+    final overdue = getOverdueCustomVaccines(baby, customRecords);
+    final upcoming = getUpcomingCustomVaccines(baby, customRecords);
+
+    // 合并并去重
+    final combined = <String, CustomVaccineScheduleItem>{};
+    for (final item in overdue) {
+      combined[item.record.vaccineName] = item;
+    }
+    for (final item in upcoming) {
+      combined[item.record.vaccineName] = item;
+    }
+
+    final result = combined.values.toList();
+    result.sort((a, b) => a.scheduledDate.compareTo(b.scheduledDate));
+    return result;
+  }
+
+  /// 根据出生日期和月龄计算实际日期
+  DateTime _calculateDate(DateTime birthDate, int months) {
+    final targetMonth = birthDate.month + months;
+    final targetYear = birthDate.year + (targetMonth - 1) ~/ 12;
+    final actualMonth = ((targetMonth - 1) % 12) + 1;
+
+    // 处理月底日期边界情况
+    final lastDayOfMonth = DateTime(targetYear, actualMonth + 1, 0).day;
+    final targetDay = birthDate.day > lastDayOfMonth ? lastDayOfMonth : birthDate.day;
+
+    return DateTime(targetYear, actualMonth, targetDay);
   }
 }
