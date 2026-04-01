@@ -22,7 +22,7 @@ class RecordsPage extends StatelessWidget {
         _buildRecordCategoryCard(
           context,
           icon: Icons.restaurant,
-          title: '喂养记录',
+          title: '喂养',
           subtitle: '记录喂奶时间、奶量、方式',
           color: const Color(0xFFFF8A65),
           onTap: () => Navigator.pushNamed(context, '/feeding'),
@@ -30,7 +30,7 @@ class RecordsPage extends StatelessWidget {
         _buildRecordCategoryCard(
           context,
           icon: Icons.bedtime,
-          title: '睡眠记录',
+          title: '睡眠',
           subtitle: '记录睡眠时间、质量',
           color: const Color(0xFF64B5F6),
           onTap: () => Navigator.pushNamed(context, '/sleep'),
@@ -38,23 +38,16 @@ class RecordsPage extends StatelessWidget {
         _buildRecordCategoryCard(
           context,
           icon: Icons.baby_changing_station,
-          title: '换尿布记录',
+          title: '换尿布',
           subtitle: '记录更换时间、状态',
           color: const Color(0xFF81C784),
           onTap: () => Navigator.pushNamed(context, '/diaper'),
         ),
-        _buildRecordCategoryCard(
-          context,
-          icon: Icons.trending_up,
-          title: '成长记录',
-          subtitle: '记录身高、体重、头围',
-          color: const Color(0xFFBA68C8),
-          onTap: () => Navigator.pushNamed(context, '/growth'),
-        ),
+
         _buildRecordCategoryCard(
           context,
           icon: Icons.icecream,
-          title: '辅食记录',
+          title: '辅食',
           subtitle: '记录辅食、食材、质地',
           color: const Color(0xFFFFB74D),
           onTap: () => Navigator.pushNamed(context, '/solid-food'),
@@ -66,6 +59,14 @@ class RecordsPage extends StatelessWidget {
           subtitle: '记录疫苗、接种时间',
           color: const Color(0xFF26A69A),
           onTap: () => Navigator.pushNamed(context, '/vaccine'),
+        ),
+        _buildRecordCategoryCard(
+          context,
+          icon: Icons.trending_up,
+          title: '成长',
+          subtitle: '记录身高、体重、头围',
+          color: const Color(0xFFBA68C8),
+          onTap: () => Navigator.pushNamed(context, '/growth'),
         ),
       ],
     );

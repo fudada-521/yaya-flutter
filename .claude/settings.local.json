@@ -13,7 +13,9 @@
       "Bash(cat:*)",
       "Bash(dart pub:*)",
       "WebFetch(domain:pub.dev)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(git tag:*)",
+      "Bash(git push:*)"
     ]
   }
 }

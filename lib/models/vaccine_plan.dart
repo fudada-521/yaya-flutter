@@ -9,6 +9,7 @@ class VaccinePlanItem {
   final List<int> recommendedMonths; // 推荐接种月龄
   final bool isFree;              // 是否免费（免疫规划内）
   final String? notes;            // 备注
+  final String disease;           // 预防的疾病
 
   const VaccinePlanItem({
     required this.name,
@@ -17,6 +18,7 @@ class VaccinePlanItem {
     required this.recommendedMonths,
     this.isFree = true,
     this.notes,
+    required this.disease,
   });
 
   /// 计算指定剂次在某个宝宝出生日期下的实际接种日期
@@ -50,12 +52,9 @@ class VaccineScheduleItem {
     required this.doseMonth,
   });
 
-  /// 获取剂次显示文本
+  /// 获取剂次显示文本（第1/1针、第1/3针格式）
   String get doseDisplay {
-    if (vaccine.totalDoses == 1) {
-      return '第1剂';
-    }
-    return '第$doseNumber剂';
+    return '第$doseNumber/${vaccine.totalDoses}针';
   }
 
   /// 获取显示名称
@@ -79,6 +78,7 @@ class VaccinePlanData {
       recommendedMonths: [0, 1, 6],
       isFree: true,
       notes: '共3剂',
+      disease: '乙型病毒性肝炎',
     ),
 
     // 卡介苗 - 出生时
@@ -89,6 +89,7 @@ class VaccinePlanData {
       recommendedMonths: [0],
       isFree: true,
       notes: '出生时接种',
+      disease: '结核病',
     ),
 
     // 脊灰疫苗 - 2、3、4月龄，4岁
@@ -99,6 +100,7 @@ class VaccinePlanData {
       recommendedMonths: [2, 3, 4, 48],
       isFree: true,
       notes: '共4剂',
+      disease: '脊髓灰质炎',
     ),
 
     // 百白破疫苗 - 3、4、5月龄，18月龄
@@ -109,6 +111,7 @@ class VaccinePlanData {
       recommendedMonths: [3, 4, 5, 18],
       isFree: true,
       notes: '共4剂',
+      disease: '百日咳、白喉、破伤风',
     ),
 
     // 麻腮风疫苗 - 8、18月龄
@@ -119,6 +122,7 @@ class VaccinePlanData {
       recommendedMonths: [8, 18],
       isFree: true,
       notes: '共2剂',
+      disease: '麻疹、风疹、流行性腮腺炎',
     ),
 
     // 乙脑疫苗 - 8、24月龄
@@ -129,6 +133,7 @@ class VaccinePlanData {
       recommendedMonths: [8, 24],
       isFree: true,
       notes: '共2剂',
+      disease: '流行性乙型脑炎',
     ),
 
     // A群流脑疫苗 - 6、9月龄
@@ -139,6 +144,7 @@ class VaccinePlanData {
       recommendedMonths: [6, 9],
       isFree: true,
       notes: '共2剂',
+      disease: '流行性脑脊髓膜炎（A群）',
     ),
 
     // A+C群流脑疫苗 - 3、6岁（36、72月龄）
@@ -149,6 +155,7 @@ class VaccinePlanData {
       recommendedMonths: [36, 72],
       isFree: true,
       notes: '共2剂',
+      disease: '流行性脑脊髓膜炎（A群、C群）',
     ),
 
     // 甲肝疫苗 - 18、24月龄
@@ -159,6 +166,7 @@ class VaccinePlanData {
       recommendedMonths: [18, 24],
       isFree: true,
       notes: '共2剂',
+      disease: '甲型病毒性肝炎',
     ),
 
     // 白破疫苗 - 6岁（72月龄）
@@ -169,6 +177,7 @@ class VaccinePlanData {
       recommendedMonths: [72],
       isFree: true,
       notes: '1剂',
+      disease: '白喉、破伤风',
     ),
   ];
 

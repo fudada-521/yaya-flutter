@@ -7,7 +7,7 @@ import 'base_record.dart';
 /// - 接种时间
 /// - 接种状态
 /// - 接种机构
-/// - 疫苗批号
+/// - 接种位置
 /// - 备注
 class VaccineRecord extends BaseRecord {
   final DateTime vaccinationTime; // 接种时间
@@ -15,7 +15,7 @@ class VaccineRecord extends BaseRecord {
   final String? vaccineCode;      // 疫苗代码（如 "HepB"）
   final String status;            // 状态: pending/completed/overdue
   final String? hospital;         // 接种机构
-  final String? batchNumber;      // 疫苗批号
+  final String? injectionSite;    // 接种位置
   final String? notes;           // 备注
 
   VaccineRecord({
@@ -26,7 +26,7 @@ class VaccineRecord extends BaseRecord {
     this.vaccineCode,
     this.status = 'pending',
     this.hospital,
-    this.batchNumber,
+    this.injectionSite,
     this.notes,
     super.createdAt,
   });
@@ -62,7 +62,7 @@ class VaccineRecord extends BaseRecord {
       'vaccineCode': vaccineCode,
       'status': status,
       'hospital': hospital,
-      'batchNumber': batchNumber,
+      'injectionSite': injectionSite,
       'notes': notes,
     });
     return map;
@@ -77,7 +77,7 @@ class VaccineRecord extends BaseRecord {
       vaccineCode: map['vaccineCode'],
       status: map['status'] ?? statusPending,
       hospital: map['hospital'],
-      batchNumber: map['batchNumber'],
+      injectionSite: map['injectionSite'],
       notes: map['notes'],
       createdAt: DateTime.parse(map['createdAt']),
     );
@@ -93,7 +93,7 @@ class VaccineRecord extends BaseRecord {
     String? vaccineCode,
     String? status,
     String? hospital,
-    String? batchNumber,
+    String? injectionSite,
     String? notes,
   }) {
     return VaccineRecord(
@@ -105,7 +105,7 @@ class VaccineRecord extends BaseRecord {
       vaccineCode: vaccineCode ?? this.vaccineCode,
       status: status ?? this.status,
       hospital: hospital ?? this.hospital,
-      batchNumber: batchNumber ?? this.batchNumber,
+      injectionSite: injectionSite ?? this.injectionSite,
       notes: notes ?? this.notes,
     );
   }

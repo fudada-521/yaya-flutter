@@ -62,7 +62,7 @@ class DatabaseHelper {
     // 移动端使用默认的 sqflite
     return await openDatabase(
       path,
-      version: 5,
+      version: 6,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -121,6 +121,30 @@ class DatabaseHelper {
           FOREIGN KEY (babyId) REFERENCES babies (id) ON DELETE CASCADE
         )
       ''');
+    }
+    if (oldVersion < 6) {
+      // v6: 将 batchNumber 改为 injectionSite
+      await db.execute('''
+        CREATE TABLE vaccine_records_new (
+          id TEXT PRIMARY KEY,
+          babyId TEXT NOT NULL,
+          vaccinationTime TEXT NOT NULL,
+          vaccineName TEXT NOT NULL,
+          vaccineCode TEXT,
+          status TEXT NOT NULL DEFAULT 'pending',
+          hospital TEXT,
+          injectionSite TEXT,
+          notes TEXT,
+          createdAt TEXT NOT NULL,
+          FOREIGN KEY (babyId) REFERENCES babies (id) ON DELETE CASCADE
+        )
+      ''');
+      await db.execute('''
+        INSERT INTO vaccine_records_new (id, babyId, vaccinationTime, vaccineName, vaccineCode, status, hospital, injectionSite, notes, createdAt)
+        SELECT id, babyId, vaccinationTime, vaccineName, vaccineCode, status, hospital, NULL, notes, createdAt FROM vaccine_records
+      ''');
+      await db.execute('DROP TABLE vaccine_records');
+      await db.execute('ALTER TABLE vaccine_records_new RENAME TO vaccine_records');
     }
   }
 
@@ -229,7 +253,7 @@ class DatabaseHelper {
         vaccineCode TEXT,
         status TEXT NOT NULL DEFAULT 'pending',
         hospital TEXT,
-        batchNumber TEXT,
+        injectionSite TEXT,
         notes TEXT,
         createdAt TEXT NOT NULL,
         FOREIGN KEY (babyId) REFERENCES babies (id) ON DELETE CASCADE
