@@ -57,15 +57,21 @@ class _VaccineScreenState extends State<VaccineScreen> {
             );
           }
 
-          return Column(
-            children: [
-              const SizedBox(height: 16),
-              _buildProgressCard(vaccineProvider, currentBaby.id),
-              _buildFilterTabs(),
-              Expanded(
-                child: _buildContent(vaccineProvider, currentBaby),
-              ),
-            ],
+          return NestedScrollView(
+            headerSliverBuilder: (context, innerBoxIsScrolled) {
+              return [
+                SliverToBoxAdapter(
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 16),
+                      _buildProgressCard(vaccineProvider, currentBaby.id),
+                      _buildFilterTabs(),
+                    ],
+                  ),
+                ),
+              ];
+            },
+            body: _buildContent(vaccineProvider, currentBaby),
           );
         },
       ),
