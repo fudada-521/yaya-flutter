@@ -445,25 +445,30 @@ class _VaccineScheduleScreenState extends State<VaccineScheduleScreen> {
               ],
             ),
             const SizedBox(height: 8),
-            // 第四行：查看接种记录按钮（已完成卡片-绿色边框）
+            // 第四行：查看接种记录按钮（图标+文字，绿色）
             GestureDetector(
               onTap: () => RecordBottomSheetHelper.showEditVaccineRecord(context, record),
               child: Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 6),
+                padding: const EdgeInsets.symmetric(vertical: 8),
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(color: Colors.green[400]!),
+                  color: Colors.green[50],
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                child: Text(
-                  '查看接种记录',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.green[400],
-                    fontWeight: FontWeight.w500,
-                  ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.visibility_outlined, size: 16, color: Colors.green[600]),
+                    const SizedBox(width: 4),
+                    Text(
+                      '查看接种记录',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.green[600],
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -530,6 +535,32 @@ class _VaccineScheduleScreenState extends State<VaccineScheduleScreen> {
     final isOverdue = item.scheduledDate.isBefore(today);
     final isFuture = item.scheduledDate.isAfter(today);
 
+    // 状态颜色定义
+    final Color borderColor;
+    final Color statusBgColor;
+    final Color statusTextColor;
+    final Color buttonColor;
+
+    if (isOverdue) {
+      // 已过期
+      borderColor = Colors.red[200]!;
+      statusBgColor = Colors.red[100]!;
+      statusTextColor = Colors.red;
+      buttonColor = Colors.red[400]!;
+    } else if (isFuture) {
+      // 未到接种时间 - 疫苗主题色
+      borderColor = const Color(0xFF26A69A).withAlpha(77);
+      statusBgColor = const Color(0xFF26A69A).withAlpha(25);
+      statusTextColor = const Color(0xFF26A69A);
+      buttonColor = const Color(0xFF26A69A);
+    } else {
+      // 待接种
+      borderColor = Colors.orange[200]!;
+      statusBgColor = Colors.orange[100]!;
+      statusTextColor = Colors.orange[700]!;
+      buttonColor = Colors.orange[400]!;
+    }
+
     return GestureDetector(
       onTap: () => _showVaccineDetail(item),
       child: Container(
@@ -537,9 +568,7 @@ class _VaccineScheduleScreenState extends State<VaccineScheduleScreen> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isOverdue ? Colors.red[200]! : (isPast ? Colors.orange[200]! : Colors.grey[300]!),
-          ),
+          border: Border.all(color: borderColor),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withAlpha(5),
@@ -575,14 +604,14 @@ class _VaccineScheduleScreenState extends State<VaccineScheduleScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
-                    color: isOverdue ? Colors.red[100] : (isFuture ? Colors.grey[200] : Colors.orange[100]),
+                    color: statusBgColor,
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
                     isOverdue ? '已过期' : (isFuture ? '未到时间' : '待接种'),
                     style: TextStyle(
                       fontSize: 10,
-                      color: isOverdue ? Colors.red : (isFuture ? Colors.grey[600] : Colors.orange[700]),
+                      color: statusTextColor,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -627,27 +656,30 @@ class _VaccineScheduleScreenState extends State<VaccineScheduleScreen> {
               ],
             ),
             const SizedBox(height: 8),
-            // 第四行：记录接种按钮（非填充，颜色与状态一致）
+            // 第四行：记录接种按钮（图标+文字，颜色与状态一致）
             GestureDetector(
               onTap: () => RecordBottomSheetHelper.showAddVaccineRecord(context, scheduleItem: item),
               child: Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 6),
+                padding: const EdgeInsets.symmetric(vertical: 8),
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(
-                    color: isOverdue ? Colors.red[400]! : (isFuture ? Colors.grey[400]! : Colors.orange[400]!),
-                  ),
+                  color: buttonColor.withAlpha(25),
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                child: Text(
-                  '记录接种',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: isOverdue ? Colors.red[400] : (isFuture ? Colors.grey[600] : Colors.orange[400]),
-                    fontWeight: FontWeight.w500,
-                  ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.add_circle_outline, size: 16, color: buttonColor),
+                    const SizedBox(width: 4),
+                    Text(
+                      '记录接种',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: buttonColor,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
