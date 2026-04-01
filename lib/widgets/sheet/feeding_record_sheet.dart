@@ -297,32 +297,6 @@ class _BreastFeedingDurationSelectorState extends State<_BreastFeedingDurationSe
     });
   }
 
-  void _stopAndSave() {
-    _timer?.cancel();
-    _timer = null;
-
-    // 计算最终时长（秒）
-    int left = widget.state.leftElapsedSeconds;
-    int right = widget.state.rightElapsedSeconds;
-
-    // 如果有当前正在计时的，也要加上
-    if (widget.state.activeSide == 'left') {
-      left += widget.state.elapsedSeconds;
-    } else if (widget.state.activeSide == 'right') {
-      right += widget.state.elapsedSeconds;
-    }
-
-    widget.onStateChanged(() {
-      widget.state.isTimerRunning = false;
-      widget.state.leftDuration = left; // 精确到秒
-      widget.state.rightDuration = right; // 精确到秒
-      widget.state.activeSide = null;
-      widget.state.elapsedSeconds = 0;
-      widget.state.leftElapsedSeconds = 0;
-      widget.state.rightElapsedSeconds = 0;
-    });
-  }
-
   void _resetTimer() {
     _timer?.cancel();
     _timer = null;

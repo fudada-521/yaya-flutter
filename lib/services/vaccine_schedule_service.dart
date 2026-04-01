@@ -6,8 +6,6 @@ import '../models/vaccine_plan.dart';
 /// 提供中国国家免疫规划疫苗的接种时间计算功能。
 /// 根据宝宝的出生日期，自动计算各疫苗的应接种时间。
 class VaccineScheduleService {
-  VaccineScheduleService._();
-
   static final VaccineScheduleService _instance = VaccineScheduleService._internal();
   factory VaccineScheduleService() => _instance;
   VaccineScheduleService._internal();

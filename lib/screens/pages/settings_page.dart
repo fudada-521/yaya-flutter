@@ -469,7 +469,7 @@ class _SettingsPageState extends State<SettingsPage> {
         Switch(
           value: enabled,
           onChanged: (value) => onChanged(value, interval),
-          activeColor: color,
+          activeTrackColor: color,
         ),
       ],
     );
@@ -615,7 +615,7 @@ class _SettingsPageState extends State<SettingsPage> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: ThemeService.themeColors.map((color) {
-                  final isSelected = _themeColor.value == color.value;
+                  final isSelected = _themeColor.toARGB32() == color.toARGB32();
                   return GestureDetector(
                     onTap: () {
                       setSheetState(() => _themeColor = color);
@@ -858,13 +858,13 @@ class _SettingsPageState extends State<SettingsPage> {
       if (!mounted) return;
 
       if (success) {
-        _showSuccessSnackBar(context, '备份已创建并分享');
+        _showSuccessSnackBar('备份已创建并分享');
       } else {
-        _showErrorSnackBar(context, '备份失败，请重试');
+        _showErrorSnackBar('备份失败，请重试');
       }
     } catch (e) {
       if (!mounted) return;
-      _showErrorSnackBar(context, '备份失败: ${e.toString()}');
+      _showErrorSnackBar('备份失败: ${e.toString()}');
     } finally {
       if (mounted) {
         setState(() => _isBackingUp = false);
@@ -885,30 +885,32 @@ class _SettingsPageState extends State<SettingsPage> {
 
     setState(() => _isRestoring = true);
 
+    // 在 await 之前获取 Provider 引用
+    // ignore: use_build_context_synchronously
+    final recordsProvider = Provider.of<RecordsProvider>(context, listen: false);
+    // ignore: use_build_context_synchronously
+    final babyProvider = Provider.of<BabyProvider>(context, listen: false);
+
+    RestoreResult restoreResult;
     try {
-      final restoreResult = await _backupService.restoreFromFile(
+      restoreResult = await _backupService.restoreFromFile(
         clearExisting: result == 'clear',
       );
-
-      if (!mounted) return;
-
-      if (restoreResult.success) {
-        // 刷新数据
-        await Provider.of<RecordsProvider>(context, listen: false).loadAllRecords();
-        await Provider.of<BabyProvider>(context, listen: false).reloadBabies();
-
-        _showSuccessSnackBar(context, restoreResult.message);
-      } else {
-        _showErrorSnackBar(context, restoreResult.message);
-      }
     } catch (e) {
-      if (!mounted) return;
-      _showErrorSnackBar(context, '恢复失败: ${e.toString()}');
-    } finally {
-      if (mounted) {
-        setState(() => _isRestoring = false);
-      }
+      _showErrorSnackBar('恢复失败: ${e.toString()}');
+      setState(() => _isRestoring = false);
+      return;
     }
+
+    if (restoreResult.success) {
+      await recordsProvider.loadAllRecords();
+      await babyProvider.reloadBabies();
+      _showSuccessSnackBar(restoreResult.message);
+    } else {
+      _showErrorSnackBar(restoreResult.message);
+    }
+
+    setState(() => _isRestoring = false);
   }
 
   /// 构建恢复选项对话框
@@ -1028,7 +1030,8 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  void _showSuccessSnackBar(BuildContext context, String message) {
+  void _showSuccessSnackBar(String message) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
@@ -1039,7 +1042,8 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  void _showErrorSnackBar(BuildContext context, String message) {
+  void _showErrorSnackBar(String message) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
@@ -1280,75 +1284,6 @@ class _SettingsPageState extends State<SettingsPage> {
               color: isBold ? Colors.red[400] : Colors.grey[600],
             ),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMinimalistDialog(
-    BuildContext context, {
-    required String title,
-    required String content,
-  }) {
-    return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(24),
-          topRight: Radius.circular(24),
-        ),
-      ),
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Center(
-            child: Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF2D2D2D),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            content,
-            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-          ),
-          const SizedBox(height: 24),
-          GestureDetector(
-            onTap: () => Navigator.pop(context),
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFF8A65),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Center(
-                child: Text(
-                  '确定',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
         ],
       ),
     );

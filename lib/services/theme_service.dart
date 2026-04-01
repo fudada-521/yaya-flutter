@@ -76,7 +76,7 @@ class ThemeService {
   /// 设置主题色
   Future<void> setThemeColor(Color color) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt(_themeColorKey, color.value);
+    await prefs.setInt(_themeColorKey, color.toARGB32());
   }
 
   /// 获取浅色主题数据

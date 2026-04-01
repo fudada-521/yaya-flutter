@@ -112,7 +112,7 @@ class FeedingRecord extends BaseRecord {
   String _formatDuration(int seconds) {
     // 秒数格式化
     if (seconds < 60) {
-      return '${seconds}秒';
+      return '$seconds秒';
     }
     final minutes = seconds ~/ 60;
     final secs = seconds % 60;
@@ -120,14 +120,14 @@ class FeedingRecord extends BaseRecord {
       final h = minutes ~/ 60;
       final m = minutes % 60;
       if (secs > 0) {
-        return '${h}h${m}m${secs}秒';
+        return '${h}h${m}m$secs秒';
       }
       return m > 0 ? '${h}h${m}m' : '${h}h';
     }
     if (secs > 0) {
-      return '${minutes}m${secs}秒';
+      return '$minutes m$secs秒';
     }
-    return '${minutes}m';
+    return '$minutes m';
   }
 
   @override
