@@ -12,11 +12,17 @@ class VaccineScheduleService {
 
   /// 根据宝宝出生日期计算所有疫苗的应接种时间
   ///
+  /// [baby] - 宝宝信息
+  /// [includeNonNational] - 是否包含非免疫规划疫苗，默认 false
   /// 返回按接种日期排序的疫苗接种计划列表
-  List<VaccineScheduleItem> calculateSchedule(Baby baby) {
+  List<VaccineScheduleItem> calculateSchedule(Baby baby, {bool includeNonNational = false}) {
     final List<VaccineScheduleItem> schedule = [];
 
-    for (final vaccine in VaccinePlanData.nationalVaccines) {
+    final vaccines = includeNonNational
+        ? VaccinePlanData.allVaccines
+        : VaccinePlanData.nationalVaccines;
+
+    for (final vaccine in vaccines) {
       for (int i = 0; i < vaccine.recommendedMonths.length; i++) {
         final month = vaccine.recommendedMonths[i];
         final scheduledDate = vaccine.calculateDate(baby.birthDate, month);
@@ -113,11 +119,13 @@ class VaccineScheduleService {
   ///
   /// [baby] - 宝宝信息
   /// [completedVaccines] - 已完成的疫苗代码列表
+  /// [includeNonNational] - 是否包含非免疫规划疫苗，默认 false
   List<VaccineScheduleItem> getAllPendingVaccines(
     Baby baby,
-    Set<String> completedVaccines,
-  ) {
-    final schedule = calculateSchedule(baby);
+    Set<String> completedVaccines, {
+    bool includeNonNational = false,
+  }) {
+    final schedule = calculateSchedule(baby, includeNonNational: includeNonNational);
 
     return schedule.where((item) {
       final vaccineKey = '${item.vaccine.code}_${item.doseNumber}';

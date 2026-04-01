@@ -181,15 +181,114 @@ class VaccinePlanData {
     ),
   ];
 
-  /// 获取所有疫苗的总剂次数
+  /// 非免疫规划疫苗（自费）
+  static const List<VaccinePlanItem> nonNationalVaccines = [
+    // 13价肺炎疫苗 - 2、4、6、12月龄
+    VaccinePlanItem(
+      name: '13价肺炎疫苗',
+      englishName: 'PCV13',
+      code: 'PCV13',
+      recommendedMonths: [2, 4, 6, 12],
+      isFree: false,
+      notes: '共4剂',
+      disease: '肺炎球菌性疾病',
+    ),
+
+    // 23价肺炎疫苗 - 24月龄后
+    VaccinePlanItem(
+      name: '23价肺炎疫苗',
+      englishName: 'PPV23',
+      code: 'PPV23',
+      recommendedMonths: [24],
+      isFree: false,
+      notes: '1剂',
+      disease: '肺炎球菌性疾病',
+    ),
+
+    // Hib疫苗 - 2、3、4、18月龄
+    VaccinePlanItem(
+      name: 'Hib疫苗',
+      englishName: 'Hib',
+      code: 'Hib',
+      recommendedMonths: [2, 3, 4, 18],
+      isFree: false,
+      notes: '共4剂',
+      disease: 'b型流感嗜血杆菌感染',
+    ),
+
+    // 轮状病毒疫苗 - 2、4月龄（口服）
+    VaccinePlanItem(
+      name: '轮状病毒疫苗',
+      englishName: 'Rotavirus',
+      code: 'RV',
+      recommendedMonths: [2, 4],
+      isFree: false,
+      notes: '共2剂，口服',
+      disease: '轮状病毒腹泻',
+    ),
+
+    // EV71手足口疫苗 - 6、7月龄
+    VaccinePlanItem(
+      name: 'EV71手足口疫苗',
+      englishName: 'EV71',
+      code: 'EV71',
+      recommendedMonths: [6, 7],
+      isFree: false,
+      notes: '共2剂',
+      disease: '手足口病',
+    ),
+
+    // 水痘疫苗 - 12、48月龄
+    VaccinePlanItem(
+      name: '水痘疫苗',
+      englishName: 'Varicella',
+      code: 'Varicella',
+      recommendedMonths: [12, 48],
+      isFree: false,
+      notes: '共2剂',
+      disease: '水痘',
+    ),
+
+    // 流感疫苗 - 6月龄起每年接种
+    VaccinePlanItem(
+      name: '流感疫苗',
+      englishName: 'Influenza',
+      code: 'Influenza',
+      recommendedMonths: [6],
+      isFree: false,
+      notes: '每年接种',
+      disease: '流行性感冒',
+    ),
+
+    // 脊灰灭活疫苗(IPV) - 2、3、4月龄（替代OPV）
+    VaccinePlanItem(
+      name: '脊灰灭活疫苗(IPV)',
+      englishName: 'IPV',
+      code: 'IPV',
+      recommendedMonths: [2, 3, 4],
+      isFree: false,
+      notes: '共3剂，替代脊灰减毒活疫苗',
+      disease: '脊髓灰质炎',
+    ),
+  ];
+
+  /// 获取所有疫苗
+  static List<VaccinePlanItem> get allVaccines => [...nationalVaccines, ...nonNationalVaccines];
+
+  /// 获取所有疫苗的总剂次数（仅免疫规划）
   static int get totalDoses {
     return nationalVaccines.fold(0, (sum, vaccine) => sum + vaccine.totalDoses);
+  }
+
+  /// 获取所有疫苗的总剂次数（含非免疫规划）
+  static int get totalDosesAll {
+    return allVaccines.fold(0, (sum, vaccine) => sum + vaccine.totalDoses);
   }
 
   /// 根据疫苗代码查找疫苗
   static VaccinePlanItem? findByCode(String code) {
     try {
-      return nationalVaccines.firstWhere((v) => v.code == code);
+      return allVaccines.firstWhere((v) => v.code == code);
     } catch (_) {
       return null;
     }
@@ -198,7 +297,7 @@ class VaccinePlanData {
   /// 根据疫苗名称查找疫苗
   static VaccinePlanItem? findByName(String name) {
     try {
-      return nationalVaccines.firstWhere((v) => v.name == name);
+      return allVaccines.firstWhere((v) => v.name == name);
     } catch (_) {
       return null;
     }

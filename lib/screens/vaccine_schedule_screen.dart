@@ -8,6 +8,9 @@ import '../models/baby.dart';
 import '../widgets/empty_baby_card.dart';
 import 'record_bottom_sheet_helper.dart';
 
+/// 疫苗筛选类型
+enum VaccineFilter { all, national, nonNational }
+
 /// 疫苗接种计划页面
 ///
 /// 使用时间轴形式展示疫苗接种时间（1月龄～6岁）
@@ -20,6 +23,8 @@ class VaccineScheduleScreen extends StatefulWidget {
 }
 
 class _VaccineScheduleScreenState extends State<VaccineScheduleScreen> {
+  VaccineFilter _selectedFilter = VaccineFilter.national; // 默认只显示免疫规划
+
   @override
   void initState() {
     super.initState();
@@ -53,8 +58,62 @@ class _VaccineScheduleScreenState extends State<VaccineScheduleScreen> {
             );
           }
 
-          return _buildTimelineView(vaccineProvider, currentBaby);
+          return Column(
+            children: [
+              _buildFilterTabs(),
+              Expanded(child: _buildTimelineView(vaccineProvider, currentBaby)),
+            ],
+          );
         },
+      ),
+    );
+  }
+
+  /// 构建筛选 Tab
+  Widget _buildFilterTabs() {
+    return Container(
+      color: Colors.white,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        children: [
+          _buildFilterChip(VaccineFilter.national, '免疫规划', Icons.shield_outlined),
+          const SizedBox(width: 8),
+          _buildFilterChip(VaccineFilter.nonNational, '非免疫规划', Icons.paid_outlined),
+          const SizedBox(width: 8),
+          _buildFilterChip(VaccineFilter.all, '全部', Icons.list),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterChip(VaccineFilter filter, String label, IconData icon) {
+    final isSelected = _selectedFilter == filter;
+    final color = isSelected ? const Color(0xFF26A69A) : Colors.grey[400]!;
+
+    return GestureDetector(
+      onTap: () => setState(() => _selectedFilter = filter),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFF26A69A).withAlpha(25) : Colors.grey[100],
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: isSelected ? const Color(0xFF26A69A) : Colors.transparent),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 14, color: color),
+            const SizedBox(width: 4),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                color: color,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -128,10 +187,17 @@ class _VaccineScheduleScreenState extends State<VaccineScheduleScreen> {
       }
     }
 
+    // 是否包含非免疫规划疫苗
+    final includeNonNational = _selectedFilter != VaccineFilter.national;
+
     // 按月龄分组待接种疫苗（排除已完成的）
     final Map<int, List<VaccineScheduleItem>> pendingByMonth = {};
-    final pendingSchedule = provider.getAllPendingVaccines(baby);
+    final pendingSchedule = provider.getAllPendingVaccines(baby, includeNonNational: includeNonNational);
     for (final item in pendingSchedule) {
+      // 根据筛选条件过滤
+      if (_selectedFilter == VaccineFilter.national && !item.vaccine.isFree) continue;
+      if (_selectedFilter == VaccineFilter.nonNational && item.vaccine.isFree) continue;
+
       final key = '${item.vaccine.code}_${item.doseNumber}';
       // 跳过已完成的
       if (completedIndex.containsKey(key)) continue;
@@ -141,6 +207,13 @@ class _VaccineScheduleScreenState extends State<VaccineScheduleScreen> {
     // 按推荐接种月龄分组已完成疫苗（而非实际接种时间）
     final Map<int, List<VaccineRecord>> completedByMonth = {};
     for (final record in completedRecords) {
+      final vaccine = VaccinePlanData.findByName(record.vaccineName);
+      if (vaccine == null) continue;
+
+      // 根据筛选条件过滤
+      if (_selectedFilter == VaccineFilter.national && !vaccine.isFree) continue;
+      if (_selectedFilter == VaccineFilter.nonNational && vaccine.isFree) continue;
+
       // 找到该记录的推荐月龄
       final recommendedMonth = _getRecommendedMonth(baby, record, provider);
       completedByMonth.putIfAbsent(recommendedMonth, () => []).add(record);
@@ -347,6 +420,7 @@ class _VaccineScheduleScreenState extends State<VaccineScheduleScreen> {
   Widget _buildCompletedCard(VaccineRecord record, Baby baby) {
     final vaccine = VaccinePlanData.findByName(record.vaccineName);
     final doseInfo = _getDoseInfo(record, vaccine, baby);
+    final isFree = vaccine?.isFree ?? true;
 
     return GestureDetector(
       onTap: () => _showVaccineDetailFromRecord(record, baby),
@@ -367,9 +441,37 @@ class _VaccineScheduleScreenState extends State<VaccineScheduleScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 第一行：疫苗名称 + 针次 + 状态
+            // 第一行：免费/自费标签 + 疫苗名称 + 针次 + 状态
             Row(
               children: [
+                // 免费/自费标签 + 图标
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: isFree ? Colors.green[50] : Colors.blue[50],
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        isFree ? Icons.shield_outlined : Icons.paid_outlined,
+                        size: 10,
+                        color: isFree ? Colors.green[600] : Colors.blue[600],
+                      ),
+                      const SizedBox(width: 2),
+                      Text(
+                        isFree ? '免费' : '自费',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: isFree ? Colors.green[600] : Colors.blue[600],
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     record.vaccineName,
@@ -580,9 +682,37 @@ class _VaccineScheduleScreenState extends State<VaccineScheduleScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 第一行：疫苗名称 + 针次 + 状态
+            // 第一行：免费/自费标签 + 疫苗名称 + 针次 + 状态
             Row(
               children: [
+                // 免费/自费标签 + 图标
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: item.vaccine.isFree ? Colors.green[50] : Colors.blue[50],
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        item.vaccine.isFree ? Icons.shield_outlined : Icons.paid_outlined,
+                        size: 10,
+                        color: item.vaccine.isFree ? Colors.green[600] : Colors.blue[600],
+                      ),
+                      const SizedBox(width: 2),
+                      Text(
+                        item.vaccine.isFree ? '免费' : '自费',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: item.vaccine.isFree ? Colors.green[600] : Colors.blue[600],
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     item.vaccine.name,

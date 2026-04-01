@@ -114,9 +114,10 @@ class VaccineProvider extends ChangeNotifier {
   }
 
   /// 获取所有未完成的疫苗
-  List<VaccineScheduleItem> getAllPendingVaccines(Baby baby) {
+  /// [includeNonNational] - 是否包含非免疫规划疫苗，默认 false
+  List<VaccineScheduleItem> getAllPendingVaccines(Baby baby, {bool includeNonNational = false}) {
     final completedKeys = _getCompletedVaccineKeys(baby.id);
-    return _scheduleService.getAllPendingVaccines(baby, completedKeys);
+    return _scheduleService.getAllPendingVaccines(baby, completedKeys, includeNonNational: includeNonNational);
   }
 
   /// 获取已完成接种的数量
