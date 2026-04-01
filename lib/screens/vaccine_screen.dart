@@ -10,10 +10,10 @@ import '../widgets/records/records.dart';
 import 'record_bottom_sheet_helper.dart';
 import 'vaccine_info_screen.dart';
 
-/// 疫苗接种综合页面
+/// 疫苗接种记录页面
 ///
-/// 显示整体接种进度、近期待接种疫苗、已完成记录。
-/// 整合了免疫规划和非免疫规划疫苗的展示。
+/// 显示疫苗接种进度、待接种疫苗列表、已完成接种记录。
+/// 可通过底部悬浮按钮添加新记录。
 class VaccineScreen extends StatefulWidget {
   const VaccineScreen({super.key});
 
@@ -21,22 +21,15 @@ class VaccineScreen extends StatefulWidget {
   State<VaccineScreen> createState() => _VaccineScreenState();
 }
 
-class _VaccineScreenState extends State<VaccineScreen> with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+class _VaccineScreenState extends State<VaccineScreen> {
+  String _filterStatus = 'pending'; // 'pending', 'completed'
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<VaccineProvider>(context, listen: false).loadVaccineRecords();
     });
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
   }
 
   @override
@@ -66,30 +59,20 @@ class _VaccineScreenState extends State<VaccineScreen> with SingleTickerProvider
 
           return Column(
             children: [
-              // 顶部进度卡片
-              _buildProgressCard(vaccineProvider, currentBaby),
-              // Tab 栏
-              _buildTabBar(),
-              // Tab 内容
+              const SizedBox(height: 16),
+              _buildProgressCard(vaccineProvider, currentBaby.id),
+              _buildFilterTabs(),
               Expanded(
-                child: TabBarView(
-                  controller: _tabController,
-                  children: [
-                    // 近期待接种
-                    _buildPendingTab(vaccineProvider, currentBaby),
-                    // 已完成记录
-                    _buildCompletedTab(vaccineProvider, currentBaby),
-                  ],
-                ),
+                child: _buildContent(vaccineProvider, currentBaby),
               ),
             ],
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: RecordFab(
+        primaryColor: const Color(0xFF26A69A),
+        secondaryColor: const Color(0xFF80CBC4),
         onPressed: () => RecordBottomSheetHelper.showAddVaccineRecord(context),
-        backgroundColor: const Color(0xFF26A69A),
-        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
@@ -135,36 +118,39 @@ class _VaccineScreenState extends State<VaccineScreen> with SingleTickerProvider
           },
           tooltip: '疫苗知识科普',
         ),
-        // 接种计划入口
+        // 刷新按钮
         IconButton(
-          icon: Icon(Icons.calendar_month, color: Colors.grey[600]),
-          onPressed: () => Navigator.pushNamed(context, '/vaccine-schedule'),
-          tooltip: '接种计划',
+          icon: Icon(Icons.refresh, color: Colors.grey[600]),
+          onPressed: () {
+            Provider.of<VaccineProvider>(context, listen: false).loadVaccineRecords();
+          },
         ),
       ],
     );
   }
 
-  /// 构建进度卡片
-  Widget _buildProgressCard(VaccineProvider provider, Baby baby) {
+  Widget _buildProgressCard(VaccineProvider provider, String babyId) {
     // 免疫规划进度
-    final nationalCompleted = _getCompletedCountByType(provider, baby.id, isFree: true);
+    final nationalCompleted = _getCompletedCountByType(provider, babyId, isFree: true);
     final nationalTotal = VaccinePlanData.nationalVaccines.fold(0, (sum, v) => sum + v.totalDoses);
     final nationalProgress = nationalTotal > 0 ? nationalCompleted / nationalTotal : 0.0;
 
     // 非免疫规划进度
-    final nonNationalCompleted = _getCompletedCountByType(provider, baby.id, isFree: false);
+    final nonNationalCompleted = _getCompletedCountByType(provider, babyId, isFree: false);
     final nonNationalTotal = VaccinePlanData.nonNationalVaccines.fold(0, (sum, v) => sum + v.totalDoses);
     final nonNationalProgress = nonNationalTotal > 0 ? nonNationalCompleted / nonNationalTotal : 0.0;
 
     // 近期待接种
-    final upcomingVaccines = provider.getUpcomingVaccines(baby);
-    final overdueVaccines = provider.getAllPendingVaccines(baby).where((item) {
-      return item.scheduledDate.isBefore(DateTime.now());
-    }).toList();
+    final Baby? baby = Provider.of<BabyProvider>(context, listen: false).currentBaby;
+    final upcomingVaccines = baby != null ? provider.getUpcomingVaccines(baby) : [];
+    final overdueVaccines = baby != null
+        ? provider.getAllPendingVaccines(baby).where((item) {
+            return item.scheduledDate.isBefore(DateTime.now());
+          }).toList()
+        : [];
 
     return Container(
-      margin: const EdgeInsets.all(16),
+      margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -178,52 +164,29 @@ class _VaccineScreenState extends State<VaccineScreen> with SingleTickerProvider
         ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 第一行：免疫规划进度
-          _buildProgressRow(
-            '免疫规划',
-            nationalCompleted,
-            nationalTotal,
-            nationalProgress,
-            Colors.green,
-            Icons.shield_outlined,
-          ),
-          const SizedBox(height: 12),
-          // 第二行：非免疫规划进度
-          _buildProgressRow(
-            '非免疫规划',
-            nonNationalCompleted,
-            nonNationalTotal,
-            nonNationalProgress,
-            Colors.blue,
-            Icons.vaccines_outlined,
-          ),
-          const Divider(height: 24),
-          // 第三行：近期统计
           Row(
             children: [
-              _buildStatChip(
-                '已过期',
-                overdueVaccines.length.toString(),
-                Colors.red[400]!,
-                overdueVaccines.isNotEmpty,
-              ),
+              Icon(Icons.vaccines, color: const Color(0xFF26A69A), size: 24),
               const SizedBox(width: 8),
-              _buildStatChip(
-                '近期待接种',
-                upcomingVaccines.length.toString(),
-                Colors.orange[400]!,
-                upcomingVaccines.isNotEmpty,
+              const Text(
+                '疫苗接种进度',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF2D2D2D),
+                ),
               ),
               const Spacer(),
               // 接种计划按钮
               GestureDetector(
                 onTap: () => Navigator.pushNamed(context, '/vaccine-schedule'),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: const Color(0xFF26A69A).withAlpha(25),
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -244,135 +207,218 @@ class _VaccineScreenState extends State<VaccineScreen> with SingleTickerProvider
               ),
             ],
           ),
-        ],
-      ),
-    );
-  }
-
-  /// 构建单个进度行
-  Widget _buildProgressRow(
-    String title,
-    int completed,
-    int total,
-    double progress,
-    Color color,
-    IconData icon,
-  ) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: color.withAlpha(25),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Icon(icon, color: color, size: 18),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          const SizedBox(height: 16),
+          Row(
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      color: Color(0xFF2D2D2D),
+              // 左侧：免疫规划进度
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.shield_outlined, color: Colors.green, size: 16),
+                        const SizedBox(width: 4),
+                        const Text(
+                          '免疫规划',
+                          style: TextStyle(fontSize: 12, color: Color(0xFF666666)),
+                        ),
+                      ],
                     ),
-                  ),
-                  Text(
-                    '$completed / $total 剂',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[600],
+                    const SizedBox(height: 8),
+                    Text(
+                      '$nationalCompleted / $nationalTotal',
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.green,
+                      ),
                     ),
-                  ),
-                ],
+                    Text(
+                      '剂次完成',
+                      style: TextStyle(fontSize: 11, color: Colors.grey[500]),
+                    ),
+                    const SizedBox(height: 4),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: LinearProgressIndicator(
+                        value: nationalProgress,
+                        backgroundColor: Colors.grey[200],
+                        valueColor: const AlwaysStoppedAnimation<Color>(Colors.green),
+                        minHeight: 6,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 6),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: LinearProgressIndicator(
-                  value: progress,
-                  backgroundColor: Colors.grey[200],
-                  valueColor: AlwaysStoppedAnimation<Color>(color),
-                  minHeight: 6,
+              const SizedBox(width: 16),
+              // 中间：非免疫规划进度
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.vaccines_outlined, color: Colors.blue, size: 16),
+                        const SizedBox(width: 4),
+                        const Text(
+                          '非免疫规划',
+                          style: TextStyle(fontSize: 12, color: Color(0xFF666666)),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '$nonNationalCompleted / $nonNationalTotal',
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue,
+                      ),
+                    ),
+                    Text(
+                      '剂次完成',
+                      style: TextStyle(fontSize: 11, color: Colors.grey[500]),
+                    ),
+                    const SizedBox(height: 4),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: LinearProgressIndicator(
+                        value: nonNationalProgress,
+                        backgroundColor: Colors.grey[200],
+                        valueColor: const AlwaysStoppedAnimation<Color>(Colors.blue),
+                        minHeight: 6,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
-        ),
-        const SizedBox(width: 12),
-        Text(
-          '${(progress * 100).toInt()}%',
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: color,
+          const SizedBox(height: 12),
+          // 近期统计
+          Row(
+            children: [
+              if (overdueVaccines.isNotEmpty) ...[
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.red[50],
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.red[200]!),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.warning_amber, color: Colors.red[400], size: 14),
+                      const SizedBox(width: 4),
+                      Text(
+                        '已过期 ${overdueVaccines.length} 剂',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Colors.red[400],
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+              ],
+              if (upcomingVaccines.isNotEmpty)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.orange[50],
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.orange[200]!),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.schedule, color: Colors.orange[400], size: 14),
+                      const SizedBox(width: 4),
+                      Text(
+                        '近期待接种 ${upcomingVaccines.length} 剂',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Colors.orange[400],
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
-  /// 构建统计标签
-  Widget _buildStatChip(String label, String value, Color color, bool hasData) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: hasData ? color.withAlpha(25) : Colors.grey[100],
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: hasData ? color.withAlpha(50) : Colors.grey[300]!),
-      ),
+  Widget _buildFilterTabs() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              color: hasData ? color : Colors.grey[500],
-            ),
-          ),
-          const SizedBox(width: 4),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: hasData ? color : Colors.grey[500],
-            ),
-          ),
+          _buildFilterChip('待接种', 'pending'),
+          const SizedBox(width: 8),
+          _buildFilterChip('已完成', 'completed'),
         ],
       ),
     );
   }
 
-  /// 构建 Tab 栏
-  Widget _buildTabBar() {
-    return Container(
-      color: Colors.white,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: TabBar(
-        controller: _tabController,
-        labelColor: const Color(0xFF26A69A),
-        unselectedLabelColor: Colors.grey[600],
-        indicatorColor: const Color(0xFF26A69A),
-        indicatorWeight: 3,
-        tabs: const [
-          Tab(text: '待接种'),
-          Tab(text: '已完成'),
-        ],
+  Widget _buildFilterChip(String label, String value) {
+    final isSelected = _filterStatus == value;
+    return GestureDetector(
+      onTap: () => setState(() => _filterStatus = value),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFF26A69A) : Colors.grey[100],
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            color: isSelected ? Colors.white : Colors.grey[600],
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+          ),
+        ),
       ),
     );
   }
 
-  /// 待接种 Tab
-  Widget _buildPendingTab(VaccineProvider provider, Baby baby) {
+  Widget _buildContent(VaccineProvider provider, Baby baby) {
+    if (_filterStatus == 'pending') {
+      return _buildPendingContent(provider, baby);
+    }
+
+    if (_filterStatus == 'completed') {
+      final completedRecords = provider.getRecordsForBaby(baby.id)
+          .where((r) => r.status == VaccineRecord.statusCompleted)
+          .toList();
+      if (completedRecords.isNotEmpty) {
+        return _buildCompletedList(completedRecords);
+      }
+      return const RecordsEmptyState(
+        icon: Icons.vaccines_outlined,
+        title: '暂无已完成记录',
+        subtitle: '点击右下角按钮添加记录',
+      );
+    }
+
+    return const RecordsEmptyState(
+      icon: Icons.vaccines_outlined,
+      title: '暂无疫苗记录',
+      subtitle: '点击右下角按钮添加记录',
+    );
+  }
+
+  /// 待接种内容
+  Widget _buildPendingContent(VaccineProvider provider, Baby baby) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
 
@@ -398,9 +444,6 @@ class _VaccineScreenState extends State<VaccineScreen> with SingleTickerProvider
       }
     }
 
-    // 合并近期列表（已过期 + 今天 + 7天内）
-    final recentItems = [...overdue, ...todayList, ...upcoming7Days];
-
     if (allPending.isEmpty) {
       return const RecordsEmptyState(
         icon: Icons.check_circle_outline,
@@ -412,13 +455,18 @@ class _VaccineScreenState extends State<VaccineScreen> with SingleTickerProvider
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       children: [
-        // 近期应接种（过期 + 今天 + 7天内）
-        if (recentItems.isNotEmpty) ...[
-          _buildSectionHeader('近期应接种', Colors.orange[400]!),
-          ...recentItems.map((item) => _buildPendingCard(item, overdue.contains(item))),
-          const SizedBox(height: 16),
+        if (overdue.isNotEmpty) ...[
+          _buildSectionHeader('已过期', Colors.red[400]!),
+          ...overdue.map((item) => _buildPendingCard(item, true)),
         ],
-        // 未来待接种（按月龄分组）
+        if (todayList.isNotEmpty) ...[
+          _buildSectionHeader('今天', Colors.orange[400]!),
+          ...todayList.map((item) => _buildPendingCard(item, false)),
+        ],
+        if (upcoming7Days.isNotEmpty) ...[
+          _buildSectionHeader('即将到期（7天内）', Colors.blue[400]!),
+          ...upcoming7Days.map((item) => _buildPendingCard(item, false)),
+        ],
         if (future.isNotEmpty) ...[
           _buildSectionHeader('未来待接种', const Color(0xFF26A69A)),
           ..._buildFutureList(future, baby),
@@ -430,7 +478,6 @@ class _VaccineScreenState extends State<VaccineScreen> with SingleTickerProvider
 
   /// 构建未来待接种列表（按月龄分组）
   List<Widget> _buildFutureList(List<VaccineScheduleItem> items, Baby baby) {
-    // 按月龄分组
     final Map<int, List<VaccineScheduleItem>> byMonth = {};
     for (final item in items) {
       byMonth.putIfAbsent(item.doseMonth, () => []).add(item);
@@ -447,7 +494,6 @@ class _VaccineScreenState extends State<VaccineScreen> with SingleTickerProvider
     return result;
   }
 
-  /// 构建月龄分组
   Widget _buildMonthSection(int month, List<VaccineScheduleItem> items) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -477,225 +523,6 @@ class _VaccineScreenState extends State<VaccineScreen> with SingleTickerProvider
     return '$years 岁 $remaining 月';
   }
 
-  /// 构建待接种卡片
-  Widget _buildPendingCard(VaccineScheduleItem item, bool isOverdue) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final isToday = item.scheduledDate.year == today.year &&
-        item.scheduledDate.month == today.month &&
-        item.scheduledDate.day == today.day;
-
-    Color statusColor;
-    String statusText;
-    if (isOverdue) {
-      statusColor = Colors.red[400]!;
-      statusText = '已过期';
-    } else if (isToday) {
-      statusColor = Colors.orange[400]!;
-      statusText = '今天';
-    } else {
-      statusColor = const Color(0xFF26A69A);
-      statusText = _formatDateShort(item.scheduledDate);
-    }
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: isOverdue ? Colors.red[200]! : Colors.grey[200]!,
-        ),
-      ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-        leading: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: statusColor.withAlpha(25),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Icon(
-            item.vaccine.isFree ? Icons.shield_outlined : Icons.vaccines_outlined,
-            color: statusColor,
-            size: 18,
-          ),
-        ),
-        title: Row(
-          children: [
-            Expanded(
-              child: Text(
-                item.vaccine.name,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                color: item.vaccine.isFree ? Colors.green[50] : Colors.blue[50],
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text(
-                item.vaccine.isFree ? '免费' : '自费',
-                style: TextStyle(
-                  fontSize: 10,
-                  color: item.vaccine.isFree ? Colors.green[600] : Colors.blue[600],
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-          ],
-        ),
-        subtitle: Row(
-          children: [
-            Text(
-              item.doseDisplay,
-              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-            ),
-            const SizedBox(width: 8),
-            Text(
-              '预防 ${item.vaccine.disease}',
-              style: TextStyle(fontSize: 11, color: Colors.grey[500]),
-            ),
-          ],
-        ),
-        trailing: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            color: statusColor.withAlpha(25),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Text(
-            statusText,
-            style: TextStyle(
-              fontSize: 11,
-              color: statusColor,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-        onTap: () => _showAddVaccineSheet(item),
-      ),
-    );
-  }
-
-  /// 已完成 Tab
-  Widget _buildCompletedTab(VaccineProvider provider, Baby baby) {
-    final completedRecords = provider.getRecordsForBaby(baby.id)
-        .where((r) => r.status == VaccineRecord.statusCompleted)
-        .toList();
-
-    if (completedRecords.isEmpty) {
-      return const RecordsEmptyState(
-        icon: Icons.vaccines_outlined,
-        title: '暂无已完成记录',
-        subtitle: '点击右下角按钮添加记录',
-      );
-    }
-
-    // 按疫苗类型分组
-    final Map<String, List<VaccineRecord>> byVaccine = {};
-    for (final record in completedRecords) {
-      byVaccine.putIfAbsent(record.vaccineName, () => []).add(record);
-    }
-
-    // 按时间倒序排列
-    completedRecords.sort((a, b) => b.vaccinationTime.compareTo(a.vaccinationTime));
-
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      itemCount: completedRecords.length,
-      itemBuilder: (context, index) {
-        return _buildCompletedCard(completedRecords[index]);
-      },
-    );
-  }
-
-  /// 构建已完成卡片
-  Widget _buildCompletedCard(VaccineRecord record) {
-    final vaccine = VaccinePlanData.findByName(record.vaccineName);
-    final isFree = vaccine?.isFree ?? true;
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-        leading: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: Colors.green.withAlpha(25),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: const Icon(Icons.check_circle, color: Colors.green, size: 20),
-        ),
-        title: Row(
-          children: [
-            Expanded(
-              child: Text(
-                record.vaccineName,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                color: isFree ? Colors.green[50] : Colors.blue[50],
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text(
-                isFree ? '免费' : '自费',
-                style: TextStyle(
-                  fontSize: 10,
-                  color: isFree ? Colors.green[600] : Colors.blue[600],
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-          ],
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              _formatDateFull(record.vaccinationTime),
-              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-            ),
-            if (record.hospital != null)
-              Text(
-                record.hospital!,
-                style: TextStyle(fontSize: 11, color: Colors.grey[500]),
-              ),
-          ],
-        ),
-        trailing: PopupMenuButton<String>(
-          icon: Icon(Icons.more_vert, color: Colors.grey[400]),
-          onSelected: (value) {
-            if (value == 'edit') {
-              RecordBottomSheetHelper.showEditVaccineRecord(context, record);
-            } else if (value == 'delete') {
-              _showDeleteConfirmation(record);
-            }
-          },
-          itemBuilder: (context) => [
-            const PopupMenuItem(value: 'edit', child: Text('编辑')),
-            const PopupMenuItem(value: 'delete', child: Text('删除')),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// 构建 Section 标题
   Widget _buildSectionHeader(String title, Color color) {
     return Padding(
       padding: const EdgeInsets.only(top: 8, bottom: 8),
@@ -719,6 +546,178 @@ class _VaccineScreenState extends State<VaccineScreen> with SingleTickerProvider
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildPendingCard(VaccineScheduleItem item, bool isOverdue) {
+    final color = isOverdue ? Colors.red[400]! : const Color(0xFF26A69A);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isOverdue ? Colors.red[200]! : Colors.grey[200]!,
+        ),
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: color.withAlpha(25),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(Icons.schedule, color: color, size: 20),
+        ),
+        title: Row(
+          children: [
+            Expanded(
+              child: Text(
+                item.displayName,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: item.vaccine.isFree ? Colors.green[50] : Colors.blue[50],
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text(
+                item.vaccine.isFree ? '免费' : '自费',
+                style: TextStyle(
+                  fontSize: 10,
+                  color: item.vaccine.isFree ? Colors.green[600] : Colors.blue[600],
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
+        ),
+        subtitle: Text(
+          _formatDate(item.scheduledDate),
+          style: TextStyle(
+            fontSize: 12,
+            color: Colors.grey[600],
+          ),
+        ),
+        trailing: isOverdue
+            ? Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.red[50],
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  '已过期',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: Colors.red[400],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              )
+            : null,
+        onTap: () => _showAddVaccineSheet(item),
+      ),
+    );
+  }
+
+  Widget _buildCompletedList(List<VaccineRecord> records) {
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      itemCount: records.length,
+      itemBuilder: (context, index) {
+        return _buildCompletedCard(records[index]);
+      },
+    );
+  }
+
+  Widget _buildCompletedCard(VaccineRecord record) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: const Color(0xFF26A69A).withAlpha(25),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: const Icon(Icons.check_circle, color: Color(0xFF26A69A), size: 20),
+        ),
+        title: Row(
+          children: [
+            Expanded(
+              child: Text(
+                record.vaccineName,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: Colors.green[50],
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text(
+                '已完成',
+                style: TextStyle(
+                  fontSize: 10,
+                  color: Colors.green[600],
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              _formatDate(record.vaccinationTime),
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey[600],
+              ),
+            ),
+            if (record.hospital != null)
+              Text(
+                record.hospital!,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Colors.grey[500],
+                ),
+              ),
+          ],
+        ),
+        trailing: PopupMenuButton<String>(
+          icon: Icon(Icons.more_vert, color: Colors.grey[400]),
+          onSelected: (value) {
+            if (value == 'edit') {
+              RecordBottomSheetHelper.showEditVaccineRecord(context, record);
+            } else if (value == 'delete') {
+              _showDeleteConfirmation(record);
+            }
+          },
+          itemBuilder: (context) => [
+            const PopupMenuItem(value: 'edit', child: Text('编辑')),
+            const PopupMenuItem(value: 'delete', child: Text('删除')),
+          ],
+        ),
       ),
     );
   }
@@ -767,22 +766,7 @@ class _VaccineScreenState extends State<VaccineScreen> with SingleTickerProvider
     );
   }
 
-  String _formatDateShort(DateTime date) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final dateOnly = DateTime(date.year, date.month, date.day);
-    final diff = dateOnly.difference(today).inDays;
-
-    if (diff == 0) return '今天';
-    if (diff == 1) return '明天';
-    if (diff == -1) return '昨天';
-    if (diff > 0 && diff <= 7) return '$diff天后';
-    if (diff < 0) return '${-diff}天前';
-
-    return '${date.month}/${date.day}';
-  }
-
-  String _formatDateFull(DateTime date) {
+  String _formatDate(DateTime date) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final yesterday = today.subtract(const Duration(days: 1));
@@ -797,6 +781,6 @@ class _VaccineScreenState extends State<VaccineScreen> with SingleTickerProvider
       prefix = '${date.month}月${date.day}日';
     }
 
-    return '$prefix ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+    return prefix;
   }
 }
