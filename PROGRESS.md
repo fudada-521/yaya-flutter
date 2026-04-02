@@ -3,9 +3,9 @@
 ## 📊 当前进度概览
 
 **项目状态**：🟢 功能完备，生产可用
-**更新时间**：2026-03-30
+**更新时间**：2026-04-02
 **项目路径**：`/Users/fukun/Documents/AI-Workspace/yaya-diary-flutter/yaya_diary`
-**开发进度**：约 90% 完成度
+**开发进度**：约 92% 完成度
 
 ---
 
@@ -85,9 +85,35 @@
 - ✅ `records_empty_state.dart` - 空状态组件
 - ✅ `timeline_widget.dart` - 时间轴组件
 
+### 9. 疫苗接种模块
+- ✅ `vaccine_screen.dart` - 疫苗接种主页（综合视图）
+- ✅ `vaccine_schedule_screen.dart` - 接种计划页面（按月龄显示）
+- ✅ `vaccine_info_screen.dart` - 疫苗知识科普页面
+- ✅ `vaccine_record_sheet.dart` - 疫苗记录表单
+- ✅ `vaccine_provider.dart` - 疫苗状态管理
+- ✅ `vaccine_schedule_service.dart` - 疫苗接种时间计算服务
+- ✅ `vaccine_plan.dart` - 疫苗计划数据模型
+- ✅ 内置中国国家免疫规划11种免费疫苗（共22剂次）
+- ✅ 支持非免疫规划（自费）疫苗
+- ✅ 疫苗选择器支持下拉选择剂次
+- ✅ 通用疫苗卡片组件（已完成/待接种统一样式）
+- ✅ 接种进度卡片（渐变背景+圆形进度环）
+- ✅ 疫苗记录与接种计划关联
+
 ---
 
-## 🎉 最新更新 (2026-03-30)
+## 🎉 最新更新 (2026-04-02)
+
+### 疫苗接种模块优化 (feature/vaccine-optimization)
+- ✅ 重新设计疫苗接种进度卡片（渐变背景+圆形进度环）
+- ✅ 统一疫苗记录卡片样式，抽离通用 `_buildVaccineCard` 组件
+- ✅ 修复疫苗选择器，支持下拉选择剂次
+- ✅ 修复已完成记录与接种计划的关联问题（使用 `vaccine.code` 匹配）
+- ✅ 去掉自定义疫苗相关功能（UI和逻辑）
+- ✅ 统一 PopupMenu 样式与其他页面一致（圆角+阴影+图标）
+- ✅ 删除重复的疫苗详情弹窗类
+- ✅ 优化接种计划页面筛选标签布局（自适应宽度）
+- ✅ 卡片日期添加前缀标签区分（"推荐接种：" / "接种日期："）
 
 ### 母乳亲喂计时模式重构
 - ✅ **双模式支持**：手动输入模式 + 计时模式
@@ -262,11 +288,15 @@ yaya_diary/
 | sleep_records | 睡眠记录 | id, babyId, startTime, endTime, quality |
 | diaper_records | 尿布记录 | id, babyId, changeTime, type, status |
 | growth_records | 成长记录 | id, babyId, recordDate, height, weight, headCircumference |
+| solid_food_records | 辅食记录 | id, babyId, mealTime, foodName, amount, texture, ingredients, notes |
+| vaccine_records | 疫苗记录 | id, babyId, vaccinationTime, vaccineName, vaccineCode, doseNumber, status, hospital, injectionSite, notes |
 
 ### 数据库版本
 - **v1**: 初始版本
 - **v2**: 添加 duration 列
 - **v3**: 添加 left_duration, right_duration, mixed_duration 列
+- **v4**: 添加辅食记录表 solid_food_records
+- **v5**: 添加疫苗记录表 vaccine_records
 
 ### feeding_records 表 type 字段说明
 | type值 | 显示名称 | 计量单位 |
@@ -278,5 +308,20 @@ yaya_diary/
 
 ---
 
-**更新时间**：2026-03-30
+## 📝 备注
+
+- 项目采用Provider进行状态管理，便于维护和扩展
+- 数据库设计支持多婴儿管理，便于家庭使用
+- 所有模型都包含完整的CRUD操作和JSON序列化
+- UI采用Material 3粉色主题，统一的卡片式设计
+- 预留了自建后端接口，支持未来扩展云端同步功能
+- 数据库使用SQLite，支持iOS/Android原生平台
+- 喂养记录支持4种类型：母乳亲喂（时长）、母乳瓶喂（奶量）、奶粉（奶量）、辅食（奶量）
+- 母乳亲喂支持左右侧分开计时，精确到秒
+- 疫苗接种内置中国国家免疫规划11种免费疫苗（共22剂次）
+- 疫苗记录通过 `vaccine.code` 与接种计划关联
+
+---
+
+**更新时间**：2026-04-02
 **当前阶段**：生产可用，功能完备
