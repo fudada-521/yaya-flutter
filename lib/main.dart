@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
-import 'screens/home_screen.dart';
+import 'screens/splash_screen.dart';
 import 'screens/feeding_screen.dart';
 import 'screens/sleep_screen.dart';
 import 'screens/diaper_screen.dart';
@@ -58,7 +58,7 @@ class YayaDiaryApp extends StatelessWidget {
           ),
           useMaterial3: true,
         ),
-        home: const HomeScreen(),
+        home: const SplashScreen(),
         routes: {
           '/feeding': (context) => const FeedingScreen(),
           '/sleep': (context) => const SleepScreen(),
