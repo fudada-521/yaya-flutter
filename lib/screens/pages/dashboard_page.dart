@@ -215,7 +215,7 @@ class DashboardPage extends StatelessWidget {
                     '辅食',
                     '${todaySolidFood.length}次',
                     const Color(0xFFFFB74D),
-                    Icons.icecream,
+                    Icons.blender,
                   ),
                 ],
               ),
