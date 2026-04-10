@@ -482,11 +482,11 @@ class VaccineInfoScreen extends StatelessWidget {
     if (months.isEmpty) return '';
     final formatted = months.map((m) {
       if (m == 0) return '出生';
-      if (m < 12) return '${m}月龄';
+      if (m < 12) return '$m月龄';
       final y = m ~/ 12;
       final rm = m % 12;
-      if (rm == 0) return '${y}岁';
-      return '${y}岁${rm}月';
+      if (rm == 0) return '$y岁';
+      return '$y岁$rm月';
     }).join('、');
     return formatted;
   }
