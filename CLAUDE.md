@@ -185,13 +185,30 @@ flutter pub run flutter_launcher_icons
 
 ### 🔧 近期优化 (v1.4.0)
 
+**UI/UX 优化**：
 - 重新设计统计页面整体统计卡片（简洁白色风格四列布局）
 - 喂养统计：总次数、母乳/瓶喂次数、日均喂养、日均奶量
 - 睡眠统计：总次数、总时长、日均时长
 - 尿布统计：总次数、日均小便/大便次数
 - 辅食统计：总次数、日均次数
-- 成长曲线添加头围数据（紫色曲线）
 - 修复图表组件溢出问题
+
+**图表功能**：
+- 成长曲线添加头围数据（三线图：身高、体重、头围）
+- 图例和Tooltip显示三条曲线数据
+
+**图标统一**：
+- 辅食图标统一使用 `Icons.blender`
+- 喂养: `Icons.restaurant`
+- 睡眠: `Icons.bedtime`
+- 尿布: `Icons.baby_changing_station`
+- 辅食: `Icons.blender`
+
+**配色统一**：
+- 喂养: `#FF8A65`
+- 睡眠: `#64B5F6`
+- 尿布: `#81C784`
+- 辅食: `#FFB74D`
 
 ### 📋 待完成功能
 
@@ -200,3 +217,25 @@ flutter pub run flutter_launcher_icons
 - [ ] 云同步 - 多设备数据同步
 - [ ] 疫苗接种证导出/打印
 - [ ] 数据备份与恢复
+
+### 📁 项目结构
+
+```
+lib/
+├── main.dart                 # 入口点
+├── database/                 # 数据库层
+├── models/                   # 数据模型
+├── providers/                # 状态管理
+├── screens/                  # 页面
+│   ├── home_screen.dart     # 首页
+│   ├── pages/               # 标签页
+│   │   ├── dashboard_page.dart   # 仪表盘
+│   │   ├── records_page.dart    # 记录页
+│   │   └── statistics_page.dart # 统计页
+│   └── solid_food_screen.dart   # 辅食页
+├── services/                 # 服务层
+└── widgets/                  # 组件
+    ├── charts/              # 图表组件
+    │   └── widgets/         # 各类型图表
+    ├── records/             # 记录组件
+    └── sheet/              # 底部表单
