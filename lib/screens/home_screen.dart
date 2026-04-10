@@ -232,7 +232,7 @@ class _HomeScreenState extends State<HomeScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 _buildQuickRecordItem(
-                  icon: Icons.icecream,
+                  icon: Icons.blender,
                   label: '辅食',
                   color: const Color(0xFFFFB74D),
                   onTap: () {

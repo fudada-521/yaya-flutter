@@ -46,7 +46,7 @@ class RecordsPage extends StatelessWidget {
 
         _buildRecordCategoryCard(
           context,
-          icon: Icons.icecream,
+          icon: Icons.blender,
           title: '辅食',
           subtitle: '记录辅食、食材、质地',
           color: const Color(0xFFFFB74D),

@@ -245,7 +245,7 @@ class TimelineWidget extends StatelessWidget {
     if (record is SleepRecord) return Icons.bedtime;
     if (record is DiaperRecord) return Icons.baby_changing_station;
     if (record is GrowthRecord) return Icons.trending_up;
-    if (record is SolidFoodRecord) return Icons.icecream;
+    if (record is SolidFoodRecord) return Icons.blender;
     return Icons.circle;
   }
 
