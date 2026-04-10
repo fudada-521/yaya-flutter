@@ -8,8 +8,10 @@
 - **睡眠记录**：记录宝宝睡眠开始/结束时间，支持睡眠质量评估
 - **尿布记录**：记录换尿布时间及状态（湿/脏/两者）
 - **成长记录**：记录身高、体重、头围等发育数据
+- **疫苗接种**：内置国家免疫规划疫苗，支持接种计划、记录和提醒
 - **多宝宝支持**：支持管理多个宝宝的档案
 - **数据统计**：提供喂养、睡眠等数据的可视化统计
+- **启动页**：品牌展示+动画效果
 
 ## 技术栈
 
@@ -24,9 +26,10 @@
 lib/
 ├── main.dart              # 应用入口
 ├── models/                # 数据模型
-├── providers/              # 状态管理
+├── providers/             # 状态管理
+├── services/              # 服务层（主题、通知、备份等）
 ├── database/              # 数据库操作
-├── screens/               # 页面
+├── screens/               # 页面（含启动页、首页、各记录页面）
 └── widgets/
     ├── sheet/             # 底部表单组件
     │   └── components/   # 可复用组件
@@ -71,6 +74,8 @@ flutter build apk --release
 | sleep_records | 睡眠记录 |
 | diaper_records | 尿布记录 |
 | growth_records | 成长记录 |
+| solid_food_records | 辅食记录 |
+| vaccine_records | 疫苗接种记录 |
 
 ## License
 
