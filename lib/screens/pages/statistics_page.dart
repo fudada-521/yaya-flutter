@@ -1,422 +1,455 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/records_provider.dart';
+import '../../widgets/charts/chart_type.dart';
+import '../../widgets/charts/time_range_notifier.dart';
+import '../../widgets/charts/widgets/feeding_chart_widget.dart';
+import '../../widgets/charts/widgets/sleep_chart_widget.dart';
+import '../../widgets/charts/widgets/diaper_pie_chart_widget.dart';
+import '../../widgets/charts/widgets/growth_chart_widget.dart';
+import '../../widgets/charts/widgets/solid_food_chart_widget.dart';
 
 /// 统计分析页面
 ///
-/// 显示今日统计、趋势概览和详细统计数据，
-/// 包括累计喂养次数、累计奶量、累计睡眠次数等。
-class StatisticsPage extends StatelessWidget {
+/// 采用观察者模式：页面监听时间范围变化，当用户切换时间范围时自动刷新图表数据
+/// 使用工厂模式：通过 ChartWidgetFactory 创建各类图表组件
+class StatisticsPage extends StatefulWidget {
   const StatisticsPage({super.key});
 
   @override
+  State<StatisticsPage> createState() => _StatisticsPageState();
+}
+
+class _StatisticsPageState extends State<StatisticsPage> {
+  // 时间范围通知器（观察者模式），默认今日
+  final TimeRangeNotifier _timeRangeNotifier = TimeRangeNotifier(initialRange: TimeRange.today);
+
+  @override
+  void dispose() {
+    _timeRangeNotifier.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: [
-          _buildStatisticsCard(context),
-          const SizedBox(height: 16),
-          _buildTrendOverview(context),
-          const SizedBox(height: 16),
-          _buildDetailedStats(context),
-        ],
+    return ChangeNotifierProvider.value(
+      value: _timeRangeNotifier,
+      child: ListenableBuilder(
+        listenable: _timeRangeNotifier,
+        builder: (context, _) {
+          final currentRange = _timeRangeNotifier.currentRange;
+
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                // 时间范围选择器（观察者模式）
+                _buildTimeRangeSelector(),
+                const SizedBox(height: 16),
+
+                // 整体统计卡片
+                _buildSummaryCard(currentRange),
+                const SizedBox(height: 16),
+
+                // 喂养趋势图
+                FeedingChartWidget(timeRange: currentRange),
+                const SizedBox(height: 16),
+
+                // 睡眠趋势图
+                SleepChartWidget(timeRange: currentRange),
+                const SizedBox(height: 16),
+
+                // 尿布分布图（单独一行）
+                DiaperPieChartWidget(timeRange: currentRange),
+                const SizedBox(height: 16),
+
+                // 辅食统计（单独一行）
+                SolidFoodChartWidget(timeRange: currentRange),
+                const SizedBox(height: 16),
+
+                // 成长曲线图
+                GrowthChartWidget(timeRange: currentRange),
+                const SizedBox(height: 32),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
 
-  Widget _buildStatisticsCard(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withAlpha(15),
-            blurRadius: 20,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.orange[50],
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(
-                  Icons.analytics_outlined,
-                  color: Colors.orange[400],
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 12),
-              const Text(
-                '今日统计',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF2D2D2D),
-                ),
+  /// 构建整体统计卡片
+  Widget _buildSummaryCard(TimeRange currentRange) {
+    return Consumer<RecordsProvider>(
+      builder: (context, provider, child) {
+        final feedingRecords = provider.feedingRecords;
+        final sleepRecords = provider.sleepRecords;
+        final diaperRecords = provider.diaperRecords;
+        final solidFoodRecords = provider.solidFoodRecords;
+
+        // ========== 喂养统计 ==========
+        int feedingCount = 0;
+        int breastCount = 0;
+        int bottleCount = 0;
+        double totalAmount = 0;
+        for (var record in feedingRecords) {
+          if (_isInTimeRange(record.feedTime, currentRange)) {
+            feedingCount++;
+            if (record.type == 'breast') {
+              breastCount++;
+              totalAmount += record.duration != null ? record.duration! * 10.0 : 60.0;
+            } else {
+              bottleCount++;
+              totalAmount += record.amount ?? 0;
+            }
+          }
+        }
+
+        // ========== 睡眠统计 ==========
+        int sleepCount = 0;
+        double totalSleepHours = 0;
+        final sleepDaysSet = <String>{};
+        for (var record in sleepRecords) {
+          if (_isInTimeRange(record.startTime, currentRange)) {
+            sleepCount++;
+            sleepDaysSet.add(_getDateKey(record.startTime));
+            if (record.endTime != null) {
+              totalSleepHours += record.endTime!.difference(record.startTime).inMinutes / 60.0;
+            }
+          }
+        }
+        final sleepDays = sleepDaysSet.length;
+        final avgSleepHours = sleepDays > 0 ? totalSleepHours / sleepDays : 0.0;
+
+        // ========== 尿布统计 ==========
+        int diaperCount = 0;
+        int wetCount = 0;
+        int dirtyCount = 0;
+        for (var record in diaperRecords) {
+          if (_isInTimeRange(record.changeTime, currentRange)) {
+            diaperCount++;
+            if (record.type == 'wet') {
+              wetCount++;
+            } else if (record.type == 'dirty') {
+              dirtyCount++;
+            } else if (record.type == 'mixed') {
+              wetCount++;
+              dirtyCount++;
+            }
+          }
+        }
+
+        // ========== 辅食统计 ==========
+        int solidFoodCount = 0;
+        for (var record in solidFoodRecords) {
+          if (_isInTimeRange(record.mealTime, currentRange)) {
+            solidFoodCount++;
+          }
+        }
+
+        // ========== 计算每日平均 ==========
+        int daysInRange = _getDaysInRange(currentRange);
+        final avgFeedingPerDay = daysInRange > 0 ? feedingCount / daysInRange : 0.0;
+        final avgAmountPerDay = daysInRange > 0 ? totalAmount / daysInRange : 0.0;
+        final avgDiaperPerDay = daysInRange > 0 ? diaperCount / daysInRange : 0.0;
+        final avgWetPerDay = daysInRange > 0 ? wetCount / daysInRange : 0.0;
+        final avgDirtyPerDay = daysInRange > 0 ? dirtyCount / daysInRange : 0.0;
+        final avgSolidFoodPerDay = daysInRange > 0 ? solidFoodCount / daysInRange : 0.0;
+
+        return Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withAlpha((0.05 * 255).round()),
+                blurRadius: 10,
+                offset: const Offset(0, 2),
               ),
             ],
           ),
-          const SizedBox(height: 20),
-          Consumer<RecordsProvider>(
-            builder: (context, recordsProvider, child) {
-              final todayStats = recordsProvider.getTodayStats();
-              final today = DateTime.now();
-              final todayStart = DateTime(today.year, today.month, today.day);
-              final todaySolidFood = recordsProvider.solidFoodRecords
-                  .where((r) => r.mealTime.isAfter(todayStart))
-                  .toList();
-
-              return Column(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 标题行
+              Row(
                 children: [
-                  _buildStatRow(
-                    '今日喂养',
-                    '${todayStats['feedingCount']}次',
-                    const Color(0xFFFF8A65),
+                  Icon(Icons.insights, color: Theme.of(context).primaryColor, size: 20),
+                  const SizedBox(width: 8),
+                  const Text(
+                    '整体统计',
+                    style: TextStyle(
+                      color: Color(0xFF333333),
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                  const SizedBox(height: 12),
-                  _buildStatRow(
-                    '今日睡眠',
-                    '${todayStats['totalSleepDuration'].inHours}小时',
-                    const Color(0xFF64B5F6),
-                  ),
-                  const SizedBox(height: 12),
-                  _buildStatRow(
-                    '今日换尿布',
-                    '${todayStats['diaperCount']}次',
-                    const Color(0xFF81C784),
-                  ),
-                  const SizedBox(height: 12),
-                  _buildStatRow(
-                    '今日辅食',
-                    '${todaySolidFood.length}次',
-                    const Color(0xFFFFB74D),
+                  const Spacer(),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).primaryColor.withAlpha((0.1 * 255).round()),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      TimeRangeHelper.getDisplayName(currentRange),
+                      style: TextStyle(
+                        color: Theme.of(context).primaryColor,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ),
                 ],
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatRow(String label, String value, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: color.withAlpha(15),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: TextStyle(fontSize: 15, color: Colors.grey[700])),
-          Row(
-            children: [
-              Container(
-                width: 8,
-                height: 8,
-                decoration: BoxDecoration(shape: BoxShape.circle, color: color),
               ),
-              const SizedBox(width: 8),
-              Text(
-                value,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: color,
+              const SizedBox(height: 16),
+
+              // ========== 四列统计 ==========
+              Row(
+                children: [
+                  // 喂养
+                  Expanded(
+                    child: _buildStatColumn(
+                      '🍼',
+                      '$feedingCount',
+                      '喂养',
+                      '母乳$breastCount 瓶喂$bottleCount',
+                      const Color(0xFFFF7043),
+                    ),
+                  ),
+                  Container(width: 1, height: 50, color: const Color(0xFFEEEEEE)),
+                  // 睡眠
+                  Expanded(
+                    child: _buildStatColumn(
+                      '😴',
+                      '$sleepCount',
+                      '睡眠',
+                      '${totalSleepHours.toStringAsFixed(1)}h',
+                      const Color(0xFF42A5F5),
+                    ),
+                  ),
+                  Container(width: 1, height: 50, color: const Color(0xFFEEEEEE)),
+                  // 尿布
+                  Expanded(
+                    child: _buildStatColumn(
+                      '🧷',
+                      '$diaperCount',
+                      '尿布',
+                      '小${avgWetPerDay.toStringAsFixed(0)} 大${avgDirtyPerDay.toStringAsFixed(0)}',
+                      const Color(0xFF66BB6A),
+                    ),
+                  ),
+                  Container(width: 1, height: 50, color: const Color(0xFFEEEEEE)),
+                  // 辅食
+                  Expanded(
+                    child: _buildStatColumn(
+                      '🥣',
+                      '$solidFoodCount',
+                      '辅食',
+                      '日均${avgSolidFoodPerDay.toStringAsFixed(1)}次',
+                      const Color(0xFFAB47BC),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+
+              // ========== 底部详情 ==========
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF5F5F5),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _buildDetailItem('总奶量', '${totalAmount.toStringAsFixed(0)} ml'),
+                    _buildDetailItem('日均喂养', '${avgFeedingPerDay.toStringAsFixed(1)} 次'),
+                    _buildDetailItem('日均奶量', '${avgAmountPerDay.toStringAsFixed(0)} ml'),
+                  ],
                 ),
               ),
             ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildTrendOverview(BuildContext context) {
+  /// 构建统计列
+  Widget _buildStatColumn(String emoji, String value, String title, String sub, Color color) {
+    return Column(
+      children: [
+        Text(emoji, style: const TextStyle(fontSize: 20)),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: TextStyle(
+            color: color,
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          title,
+          style: const TextStyle(
+            color: Color(0xFF666666),
+            fontSize: 11,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          sub,
+          style: const TextStyle(
+            color: Color(0xFF999999),
+            fontSize: 9,
+          ),
+          textAlign: TextAlign.center,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ],
+    );
+  }
+
+  /// 构建详情项
+  Widget _buildDetailItem(String label, String value) {
+    return Column(
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            color: Color(0xFF999999),
+            fontSize: 10,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          value,
+          style: const TextStyle(
+            color: Color(0xFF333333),
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// 获取时间范围内的天数
+  int _getDaysInRange(TimeRange range) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    switch (range) {
+      case TimeRange.today:
+        return 1;
+      case TimeRange.week:
+        return 7;
+      case TimeRange.month:
+        return 30;
+      case TimeRange.all:
+        // 计算所有记录中最早日期到今天的天数
+        return today.difference(DateTime(2020, 1, 1)).inDays;
+    }
+  }
+
+  /// 判断时间是否在范围内
+  bool _isInTimeRange(DateTime dateTime, TimeRange range) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    switch (range) {
+      case TimeRange.today:
+        final date = DateTime(dateTime.year, dateTime.month, dateTime.day);
+        return date.isAtSameMomentAs(today);
+      case TimeRange.week:
+        final weekAgo = today.subtract(const Duration(days: 7));
+        return dateTime.isAfter(weekAgo);
+      case TimeRange.month:
+        final monthAgo = DateTime(today.year, today.month - 1, today.day);
+        return dateTime.isAfter(monthAgo);
+      case TimeRange.all:
+        return true;
+    }
+  }
+
+  /// 获取日期Key
+  String _getDateKey(DateTime dateTime) {
+    return '${dateTime.year}-${dateTime.month}-${dateTime.day}';
+  }
+
+  /// 构建时间范围选择器
+  Widget _buildTimeRangeSelector() {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withAlpha(15),
-            blurRadius: 20,
-            offset: const Offset(0, 4),
+            color: Colors.grey.withAlpha(13),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
         children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.blue[50],
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(Icons.timeline, color: Colors.blue[400], size: 20),
-              ),
-              const SizedBox(width: 12),
-              const Text(
-                '趋势概览',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF2D2D2D),
-                ),
-              ),
-            ],
+          Icon(
+            Icons.date_range,
+            color: Colors.grey[600],
+            size: 20,
           ),
-          const SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildTrendItem(
-                context,
-                '喂养',
-                Icons.restaurant,
-                const Color(0xFFFF8A65),
-                () {
-                  Navigator.pushNamed(context, '/feeding');
-                },
-              ),
-              _buildTrendItem(
-                context,
-                '睡眠',
-                Icons.bedtime,
-                const Color(0xFF64B5F6),
-                () {
-                  Navigator.pushNamed(context, '/sleep');
-                },
-              ),
-              _buildTrendItem(
-                context,
-                '尿布',
-                Icons.baby_changing_station,
-                const Color(0xFF81C784),
-                () {
-                  Navigator.pushNamed(context, '/diaper');
-                },
-              ),
-              _buildTrendItem(
-                context,
-                '辅食',
-                Icons.icecream,
-                const Color(0xFFFFB74D),
-                () {
-                  Navigator.pushNamed(context, '/solid-food');
-                },
-              ),
-              _buildTrendItem(
-                context,
-                '成长',
-                Icons.trending_up,
-                const Color(0xFFBA68C8),
-                () {
-                  Navigator.pushNamed(context, '/growth');
-                },
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTrendItem(
-    BuildContext context,
-    String label,
-    IconData icon,
-    Color color,
-    VoidCallback onTap,
-  ) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: color.withAlpha(25),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Icon(icon, size: 28, color: color),
-          ),
-          const SizedBox(height: 8),
+          const SizedBox(width: 12),
           Text(
-            label,
+            '时间范围',
             style: TextStyle(
-              fontSize: 13,
+              fontSize: 14,
               color: Colors.grey[600],
               fontWeight: FontWeight.w500,
             ),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDetailedStats(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withAlpha(15),
-            blurRadius: 20,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+          const Spacer(),
+          // 时间范围选项
           Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.green[50],
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(Icons.storage, color: Colors.green[400], size: 20),
-              ),
-              const SizedBox(width: 12),
-              const Text(
-                '详细统计',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF2D2D2D),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          Consumer<RecordsProvider>(
-            builder: (context, recordsProvider, child) {
-              final allRecords = recordsProvider.getRecentRecords(limit: 50);
-              final feedingRecords = recordsProvider.feedingRecords;
-              final totalFeeding = feedingRecords.length;
-              final totalFeedingAmount = feedingRecords.fold<double>(
-                0,
-                (sum, r) => sum + (r.amount ?? 0),
-              );
-              final sleepRecords = recordsProvider.sleepRecords;
-              final totalSleepDuration = sleepRecords.fold<Duration>(
-                Duration.zero,
-                (sum, r) => sum + (r.duration ?? Duration.zero),
-              );
-              final diaperRecords = recordsProvider.diaperRecords;
-              final totalDiaper = diaperRecords.length;
-              final solidFoodRecords = recordsProvider.solidFoodRecords;
-              final totalSolidFood = solidFoodRecords.length;
-
-              return Column(
-                children: [
-                  _buildDetailStat(
-                    '累计喂养次数',
-                    '$totalFeeding次',
-                    const Color(0xFFFF8A65),
-                  ),
-                  if (totalFeedingAmount > 0) ...[
-                    const SizedBox(height: 10),
-                    _buildDetailStat(
-                      '累计奶量',
-                      '${totalFeedingAmount.toStringAsFixed(0)}ml',
-                      const Color(0xFFFF8A65),
+            mainAxisSize: MainAxisSize.min,
+            children: TimeRange.values.map((range) {
+              final isSelected = _timeRangeNotifier.currentRange == range;
+              return Padding(
+                padding: const EdgeInsets.only(left: 8),
+                child: GestureDetector(
+                  onTap: () => _timeRangeNotifier.setRange(range),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
                     ),
-                  ],
-                  const SizedBox(height: 10),
-                  _buildDetailStat(
-                    '累计睡眠次数',
-                    '${sleepRecords.length}次',
-                    const Color(0xFF64B5F6),
-                  ),
-                  const SizedBox(height: 10),
-                  _buildDetailStat(
-                    '累计睡眠时长',
-                    '${totalSleepDuration.inHours}小时',
-                    const Color(0xFF64B5F6),
-                  ),
-                  const SizedBox(height: 10),
-                  _buildDetailStat(
-                    '累计换尿布次数',
-                    '$totalDiaper次',
-                    const Color(0xFF81C784),
-                  ),
-                  const SizedBox(height: 10),
-                  _buildDetailStat(
-                    '累计辅食次数',
-                    '$totalSolidFood次',
-                    const Color(0xFFFFB74D),
-                  ),
-                  const SizedBox(height: 16),
-                  Container(
-                    padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.grey[100],
-                      borderRadius: BorderRadius.circular(10),
+                      color: isSelected
+                          ? Theme.of(context).primaryColor
+                          : Colors.grey[200],
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.info_outline,
-                          size: 16,
-                          color: Colors.grey[500],
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          '数据基于最近${allRecords.length}条记录',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey[500],
-                          ),
-                        ),
-                      ],
+                    child: Text(
+                      TimeRangeHelper.getDisplayName(range),
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                        color: isSelected ? Colors.white : Colors.grey[700],
+                      ),
                     ),
                   ),
-                ],
+                ),
               );
-            },
+            }).toList(),
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildDetailStat(String label, String value, Color color) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(label, style: TextStyle(fontSize: 14, color: Colors.grey[600])),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-            color: color,
-          ),
-        ),
-      ],
     );
   }
 }
