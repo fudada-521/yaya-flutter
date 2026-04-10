@@ -211,7 +211,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
                   // 喂养
                   Expanded(
                     child: _buildStatColumn(
-                      '🍼',
+                      Icons.restaurant,
                       '$feedingCount',
                       '喂养',
                       '母乳$breastCount 瓶喂$bottleCount',
@@ -222,7 +222,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
                   // 睡眠
                   Expanded(
                     child: _buildStatColumn(
-                      '😴',
+                      Icons.bedtime,
                       '$sleepCount',
                       '睡眠',
                       '${totalSleepHours.toStringAsFixed(1)}h',
@@ -233,7 +233,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
                   // 尿布
                   Expanded(
                     child: _buildStatColumn(
-                      '🧷',
+                      Icons.baby_changing_station,
                       '$diaperCount',
                       '尿布',
                       '小${avgWetPerDay.toStringAsFixed(0)} 大${avgDirtyPerDay.toStringAsFixed(0)}',
@@ -244,7 +244,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
                   // 辅食
                   Expanded(
                     child: _buildStatColumn(
-                      '🥣',
+                      Icons.blender,
                       '$solidFoodCount',
                       '辅食',
                       '日均${avgSolidFoodPerDay.toStringAsFixed(1)}次',
@@ -279,10 +279,10 @@ class _StatisticsPageState extends State<StatisticsPage> {
   }
 
   /// 构建统计列
-  Widget _buildStatColumn(String emoji, String value, String title, String sub, Color color) {
+  Widget _buildStatColumn(IconData icon, String value, String title, String sub, Color color) {
     return Column(
       children: [
-        Text(emoji, style: const TextStyle(fontSize: 20)),
+        Icon(icon, size: 24, color: color),
         const SizedBox(height: 4),
         Text(
           value,
