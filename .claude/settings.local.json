@@ -15,7 +15,8 @@
       "WebFetch(domain:pub.dev)",
       "WebSearch",
       "Bash(git tag:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(git remote set-url:*)"
     ]
   }
 }
