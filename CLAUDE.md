@@ -79,9 +79,11 @@ flutter pub run flutter_launcher_icons
 - `FoodIngredientService` (`lib/services/food_ingredient_service.dart`) - 食材列表管理，支持自定义食材持久化
 - `VaccineScheduleService` (`lib/services/vaccine_schedule_service.dart`) - 疫苗接种时间计算服务
 - `NotificationService` (`lib/services/notification_service.dart`) - 本地通知服务，支持喂养、睡眠、尿布、疫苗提醒
+- `BackupService` (`lib/services/backup_service.dart`) - 数据备份服务
 
 ### UI 层
 
+- `SplashScreen` - 启动页（渐变背景+动画+2秒后跳转首页）
 - `HomeScreen` - 主要标签容器，包含 4 个标签：仪表板、记录、统计、设置
 - `RecordBottomSheetHelper` - 所有添加/编辑底部表单的集中助手
 - 可重用表单组件在 `lib/widgets/sheet/components/` (模板方法 + 策略模式)
@@ -183,6 +185,7 @@ flutter pub run flutter_launcher_icons
 
 ### 🔧 近期优化 (feature/vaccine-optimization)
 
+- 新增启动页组件 `SplashScreen`（渐变背景+动画+2秒后跳转）
 - 重新设计疫苗接种进度卡片（渐变背景+圆形进度环）
 - 统一疫苗记录卡片样式，抽离通用组件
 - 修复疫苗选择器，支持选择剂次
@@ -192,6 +195,7 @@ flutter pub run flutter_launcher_icons
 - 删除重复的疫苗详情弹窗类
 - 优化接种计划页面筛选标签布局
 - 卡片日期添加前缀标签区分（推荐接种/接种日期）
+- GitHub 同步（添加 origin-github 远程仓库）
 
 ### 📋 待完成功能
 

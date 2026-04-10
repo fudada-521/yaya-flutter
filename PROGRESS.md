@@ -3,9 +3,10 @@
 ## 📊 当前进度概览
 
 **项目状态**：🟢 功能完备，生产可用
-**更新时间**：2026-04-02
-**项目路径**：`/Users/fukun/Documents/AI-Workspace/yaya-diary-flutter/yaya_diary`
-**开发进度**：约 92% 完成度
+**更新时间**：2026-04-10
+**项目路径**：`/Users/fukun/Documents/AI-Workspace/yaya_diary`
+**GitHub 仓库**：https://github.com/fudada-521/yaya-flutter
+**开发进度**：约 93% 完成度
 
 ---
 
@@ -31,7 +32,13 @@
 
 ### 3. 目录结构创建
 - ✅ `lib/models/` - 数据模型目录（6个模型，含BaseRecord）
-- ✅ `lib/providers/` - 状态管理目录（2个Provider）
+- ✅ `lib/providers/` - 状态管理目录（3个Provider）
+- ✅ `lib/services/` - 服务层目录
+  - `services/theme_service.dart` - 主题设置管理
+  - `services/food_ingredient_service.dart` - 食材列表管理
+  - `services/vaccine_schedule_service.dart` - 疫苗接种时间计算
+  - `services/notification_service.dart` - 本地通知服务
+  - `services/backup_service.dart` - 数据备份服务
 - ✅ `lib/screens/` - 页面目录（home_screen + pages/ 子目录）
 - ✅ `lib/screens/pages/` - 4个子页面（Dashboard/Records/Statistics/Settings）
 - ✅ `lib/widgets/` - 组件目录
@@ -54,6 +61,7 @@
 - ✅ `lib/database/database_helper.dart` - 数据库帮助类（v3，支持左右侧时长列）
 
 ### 5. 页面开发
+- ✅ `splash_screen.dart` - 启动页（渐变背景+动画+自动跳转）
 - ✅ `home_screen.dart` - 首页容器（含底部导航）
 - ✅ `pages/dashboard_page.dart` - 仪表盘（欢迎卡片、今日统计、最近记录）
 - ✅ `pages/records_page.dart` - 记录分类列表
@@ -102,7 +110,17 @@
 
 ---
 
-## 🎉 最新更新 (2026-04-02)
+## 🎉 最新更新 (2026-04-10)
+
+### 启动页组件重构
+- ✅ 新增 `SplashScreen` 启动页组件
+- ✅ 渐变背景（橙色系）+ Logo + 应用名称动画
+- ✅ 2秒后自动跳转到首页
+- ✅ 应用入口更新为 `SplashScreen`
+
+### GitHub 同步
+- ✅ 添加 `origin-github` 远程仓库
+- ✅ 推送 main/develop/master 分支到 GitHub
 
 ### 疫苗接种模块优化 (feature/vaccine-optimization)
 - ✅ 重新设计疫苗接种进度卡片（渐变背景+圆形进度环）
@@ -323,5 +341,5 @@ yaya_diary/
 
 ---
 
-**更新时间**：2026-04-02
+**更新时间**：2026-04-10
 **当前阶段**：生产可用，功能完备
